@@ -2781,7 +2781,9 @@ right-actions {
   font-size: 14px;
   color: #333;
   outline: none;
+  margin-left:8px;
 }
+
 
 /* optional small hover */
 #customDatePicker:hover {
@@ -4028,41 +4030,6 @@ right-actions {
 
 
 /* =========================================SELECTED POOL=========================================== */
-.selected-head-tabs{
-  position: relative;
-  display: inline-flex;
-  background: #d9d9d9;
-  padding: 6px;
-  border-radius: 12px;
-  gap: 6px;
-}
-
-.selected-head-tab{
-  background: transparent;
-  border: none;
-  padding: 8px 18px;
-  font-size: 15px;
-  cursor: pointer;
-  z-index: 2;
-}
-
-.selected-head-tab.active{
-  font-weight: 600;
-}
-
-.tab-slider{
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  height: 34px;
-  background: #fff;
-  border-radius: 10px;
-  transition: all .3s ease;
-  z-index: 1;
-  box-shadow: 0 2px 4px rgba(0,0,0,.2);
-}
-
-
 .selected-stats-wrapper {
   display: flex;
   gap: 28px;
@@ -4124,6 +4091,7 @@ right-actions {
   gap: 14px;
 }
 
+/* search */
 .selected-head-search {
   width: 320px;
   padding: 10px 14px;
@@ -4134,6 +4102,7 @@ right-actions {
   outline: none;
 }
 
+/* icon buttons */
 .selected-head-icon-btn {
   width: 40px;
   height: 40px;
@@ -4144,28 +4113,66 @@ right-actions {
   font-size: 16px;
 }
 
+/* TABS + DATE GROUP (like screenshot) */
 .selected-head-tabs {
   display: flex;
-  background: #ddd;
+  align-items: center;
+  background: #e5e5e5;
   padding: 4px;
-  border-radius: 10px;
+  border-radius: 12px;
   gap: 4px;
+  position: relative;
 }
 
+/* each tab */
 .selected-head-tab {
-  padding: 8px 16px;
+  padding: 8px 18px;
   border: none;
   background: transparent;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   font-size: 14px;
+  position: relative;
+  z-index: 2;
+  color: #444;
 }
 
 .selected-head-tab.active {
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
   font-weight: 600;
+  color: #111;
 }
+
+/* white slider behind active tab */
+.selected-tab-slider {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  height: calc(100% - 8px);
+  background: #fff;
+  border-radius: 10px;
+  transition: 0.3s ease;
+  z-index: 1;
+  box-shadow: 0 2px 4px rgba(0,0,0,.15);
+}
+
+/* DATE INPUT next to tabs */
+#selectedCustomDatePicker {
+  margin-left: 8px;
+  background: #fff;
+  border: 1px solid #cfcfcf;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 14px;
+  height: 34px;
+  display: none;
+}
+
+#selectedCustomDatePicker.show {
+  display: block;
+}
+
+
+
 /* ----------------------- */
 .company-dropdown {
   position: absolute;
