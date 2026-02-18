@@ -370,6 +370,20 @@
             <div class="nav-text">Selected Pool</div>
             <div class="tooltip">Selected Pool</div>
           </a>
+          <a href="#" class="nav-item" data-page="retentionPool">
+            <div class="nav-icon">
+              <i class="fa-regular fa-clock"></i>
+            </div>
+            <div class="nav-text">Retention Pool</div>
+            <div class="tooltip">Retention Pool</div>
+          </a>
+          <a href="#" class="nav-item" data-page="highlightPool">
+            <div class="nav-icon">
+              <i class="fa-solid fa-star"></i>
+            </div>
+            <div class="nav-text">Highlight Pool</div>
+            <div class="tooltip">Highlight Pool</div>
+          </a>
           <a href="#" class="nav-item" data-page="matchfinder">
             <div class="nav-icon"><i class="fa-solid fa-sliders"></i></div>
             <div class="nav-text">Easy Match Finder</div>
@@ -580,9 +594,11 @@
         <button class="date-btn">Today</button>
         <button class="date-btn">Tomorrow</button>
         <button class="date-btn">Custom</button>
+        
+      <input type="date" id="customDatePicker" style="display:none;">
+      
       </div>
       
-      <input type="date" id="customDatePicker" style="display:none;">
 
       <button class="refresh-btn">
         <i class="fa-solid fa-rotate"></i>
@@ -654,6 +670,10 @@
       <button class="selected-head-tab">Today</button>
       <button class="selected-head-tab">Tomorrow</button>
       <button class="selected-head-tab">Custom</button>
+
+      
+  <input type="date" id="selectedCustomDatePicker" style="display:none;">
+    
     </div>
 
     <button class="selected-head-icon-btn"><i class="fa-solid fa-arrows-rotate"></i></button>
@@ -3884,6 +3904,147 @@ function closeScheduledConfirmation() {
 
 
 // =======================================SELECTED POOL==================================================
+/******************************
+ SLIDER SETUP
+******************************/
+const selectedTabs = document.querySelectorAll(".selected-head-tab");
+const tabsWrapper = document.querySelector(".selected-head-tabs");
+const customDateInput = document.getElementById("selectedCustomDatePicker");
+
+// create slider once
+let selectedSlider = tabsWrapper.querySelector(".selected-tab-slider");
+if (!selectedSlider) {
+  selectedSlider = document.createElement("div");
+  selectedSlider.className = "selected-tab-slider";
+  tabsWrapper.appendChild(selectedSlider);
+}
+
+// move slider
+function moveSlider(btn){
+  selectedSlider.style.width = btn.offsetWidth + "px";
+  selectedSlider.style.left = btn.offsetLeft + "px";
+}
+
+// initial slider
+setTimeout(()=>{
+  const active = document.querySelector(".selected-head-tab.active");
+  if(active) moveSlider(active);
+},50);
+
+
+/******************************
+ DATE HELPERS
+******************************/
+function normalizeDate(d){
+  const x = new Date(d);
+  x.setHours(0,0,0,0);
+  return x;
+}
+
+function getToday(){
+  const t = new Date();
+  t.setHours(0,0,0,0);
+  return t;
+}
+
+function getTomorrow(){
+  const t = new Date();
+  t.setDate(t.getDate()+1);
+  t.setHours(0,0,0,0);
+  return t;
+}
+
+
+/******************************
+ FILTER LOGIC (UNCHANGED)
+******************************/
+function filterSelectedCandidates(type, customDate=null){
+
+  if(!selectedCandidatePoolData) return [];
+
+  const today = getToday();
+  const tomorrow = getTomorrow();
+
+  return selectedCandidatePoolData.filter(c=>{
+
+    if(!c.joiningDate) return false;
+
+    const join = normalizeDate(c.joiningDate);
+
+    if(type==="today"){
+      return join.getTime() === today.getTime();
+    }
+
+    if(type==="tomorrow"){
+      return join.getTime() === tomorrow.getTime();
+    }
+
+    if(type==="pending"){
+      if(join.getTime() === today.getTime()) return false;
+      if(join.getTime() === tomorrow.getTime()) return false;
+      return true;
+    }
+
+    if(type==="custom" && customDate){
+      const sel = normalizeDate(customDate);
+      return join.getTime() === sel.getTime();
+    }
+
+    return true;
+  });
+}
+
+
+/******************************
+ DATE PICKER CHANGE
+******************************/
+customDateInput.addEventListener("change",()=>{
+  const val = customDateInput.value;
+  if(!val) return;
+
+  const filtered = filterSelectedCandidates("custom", val);
+  renderSelectedCandidateCards(filtered);
+});
+
+
+/******************************
+ TAB CLICK EVENTS
+******************************/
+selectedTabs.forEach(tab=>{
+  tab.addEventListener("click",()=>{
+
+    selectedTabs.forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+
+    moveSlider(tab);
+
+    const type = tab.innerText.trim().toLowerCase();
+
+    if(type==="custom"){
+      customDateInput.style.display = "block";   // show beside tab
+      customDateInput.focus();
+      return;
+    } else {
+      customDateInput.style.display = "none";
+    }
+
+    const filtered = filterSelectedCandidates(type);
+    renderSelectedCandidateCards(filtered);
+
+  });
+});
+
+
+/******************************
+ INITIAL LOAD = PENDING
+******************************/
+setTimeout(()=>{
+  if(typeof selectedCandidatePoolData !== "undefined"){
+    const initial = filterSelectedCandidates("pending");
+    renderSelectedCandidateCards(initial);
+  }
+},100);
+
 
 function searchSelectedCandidates(searchText) {
   const text = searchText.toLowerCase().trim();
