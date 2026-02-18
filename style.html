@@ -93,7 +93,7 @@ body {
 /* ===== SIDEBAR ===== */
 .sidebar {
   width: 70px;
-  background: linear-gradient(180deg, #e5ad34 0%, #FFD700 100%);
+  background-color: #FFF6BF; //background: linear-gradient(180deg, #e5ad34 0%, #FFD700 100%);
   padding: 20px 12px;
   display: flex;
   flex-direction: column;
@@ -316,6 +316,34 @@ body {
 
 .dropdown-item:hover {
   background: #eef2ff;
+}
+
+.dropdown-item {
+  position: relative;
+}
+
+.dropdown-item[data-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.coming-tooltip {
+  display: none;
+  position: absolute;
+  left: 105%;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #111;
+  color: #fff;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 1000;
+}
+
+.dropdown-item[data-disabled="true"]:hover .coming-tooltip {
+  display: block;
 }
 
 
@@ -4028,41 +4056,6 @@ right-actions {
 
 
 /* =========================================SELECTED POOL=========================================== */
-.selected-head-tabs{
-  position: relative;
-  display: inline-flex;
-  background: #d9d9d9;
-  padding: 6px;
-  border-radius: 12px;
-  gap: 6px;
-}
-
-.selected-head-tab{
-  background: transparent;
-  border: none;
-  padding: 8px 18px;
-  font-size: 15px;
-  cursor: pointer;
-  z-index: 2;
-}
-
-.selected-head-tab.active{
-  font-weight: 600;
-}
-
-.tab-slider{
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  height: 34px;
-  background: #fff;
-  border-radius: 10px;
-  transition: all .3s ease;
-  z-index: 1;
-  box-shadow: 0 2px 4px rgba(0,0,0,.2);
-}
-
-
 .selected-stats-wrapper {
   display: flex;
   gap: 28px;
@@ -4418,6 +4411,8 @@ right-actions {
   opacity: 1;
   transform: translateX(-50%) translateY(-4px);
 }
+
+
 
 
 </style>
