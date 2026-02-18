@@ -355,35 +355,45 @@
             <div class="nav-text">Dashboard</div>
             <div class="tooltip">Dashboard</div>
           </a>
-          <a href="#" class="nav-item" data-page="candidate-pool">
-            <div class="nav-icon"><i class="fa-solid fa-people-group"></i></div>
-            <div class="nav-text">Candidate Pool</div>
-            <div class="tooltip">Candidate Pool</div>
-          </a>
-          <a href="#" class="nav-item" data-page="schedule">
-            <div class="nav-icon"><i class="fa-solid fa-calendar-days"></i></div>
-            <div class="nav-text">Scheduled Pool</div>
-            <div class="tooltip">Scheduled Pool</div>
-          </a>
-          <a href="#" class="nav-item" data-page="selectedPool">
-            <div class="nav-icon"><i class="fa-solid fa-clipboard-check"></i></div>
-            <div class="nav-text">Selected Pool</div>
-            <div class="tooltip">Selected Pool</div>
-          </a>
-          <a href="#" class="nav-item" data-page="retentionPool">
+          <!-- Pool Dropdown -->
+          <div class="nav-item has-dropdown">
             <div class="nav-icon">
-              <i class="fa-regular fa-clock"></i>
+              <i class="fa-solid fa-briefcase"></i>
             </div>
-            <div class="nav-text">Retention Pool</div>
-            <div class="tooltip">Retention Pool</div>
-          </a>
-          <a href="#" class="nav-item" data-page="highlightPool">
-            <div class="nav-icon">
-              <i class="fa-solid fa-star"></i>
+            <div class="nav-text">Pool</div>
+            <i class="fa-solid fa-caret-right dropdown-caret"></i>
+            <div class="tooltip">Pool</div>
+
+            <div class="dropdown-menu">
+              <a href="#" class="dropdown-item" data-page="candidate-pool">
+                <i class="fa-solid fa-people-group"></i>
+                <span>Candidate Pool</span>
+              </a>
+
+              <a href="#" class="dropdown-item" data-page="schedule">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Scheduled Pool</span>
+              </a>
+
+              <a href="#" class="dropdown-item" data-page="selectedPool">
+                <i class="fa-solid fa-clipboard-check"></i>
+                <span>Selected Pool</span>
+              </a>
+
+              <a href="#" class="dropdown-item" data-page="retentionPool" data-disabled="true">
+                <i class="fa-regular fa-clock"></i>
+                <span>Retention Pool</span>
+                <span class="coming-tooltip">Coming soon</span>
+              </a>
+
+              <a href="#" class="dropdown-item" data-page="highlightPool" data-disabled="true">
+                <i class="fa-solid fa-star"></i>
+                <span>Highlight Pool</span>
+                <span class="coming-tooltip">Coming soon</span>
+              </a>
             </div>
-            <div class="nav-text">Highlight Pool</div>
-            <div class="tooltip">Highlight Pool</div>
-          </a>
+          </div>
+
           <a href="#" class="nav-item" data-page="matchfinder">
             <div class="nav-icon"><i class="fa-solid fa-sliders"></i></div>
             <div class="nav-text">Easy Match Finder</div>
@@ -739,27 +749,50 @@
 
     // ===== NAVIGATION =====
     function initializeNavigation() {
-      const navItems = document.querySelectorAll('.nav-item');
-      navItems.forEach(item => {
-        item.addEventListener('click', function(e) {
-          e.preventDefault();
-          
-          // Remove active class from all items
-          navItems.forEach(nav => nav.classList.remove('active'));
-          
-          // Add active class to clicked item
-          this.classList.add('active');
-          
-          // Navigate to page
-          const page = this.getAttribute('data-page');
-          console.log('Navigating to:', page);
-          navigateToPage(page);
-        });
-      });
-      
-      // Show dashboard by default
-      navigateToPage('selectedPool');
+
+  document.addEventListener('click', function (e) {
+
+    // ===== DROPDOWN ITEM CLICK =====
+    const dropdownItem = e.target.closest('.dropdown-item');
+    if (dropdownItem) {
+      e.preventDefault();
+
+      // block pages that don't exist yet
+      if (dropdownItem.dataset.disabled === "true") return;
+
+      const page = dropdownItem.dataset.page;
+      if (!page) return;
+
+      console.log('Navigating to (dropdown):', page);
+      navigateToPage(page);
+
+      return;
     }
+
+    // ===== NORMAL SIDEBAR ITEM CLICK =====
+    const navItem = e.target.closest('.nav-item');
+    if (!navItem) return;
+
+    // Ignore the Pool container itself
+    if (navItem.classList.contains('has-dropdown')) return;
+
+    e.preventDefault();
+
+    // Active state
+    document.querySelectorAll('.nav-item')
+      .forEach(nav => nav.classList.remove('active'));
+    navItem.classList.add('active');
+
+    const page = navItem.getAttribute('data-page');
+    if (!page) return;
+
+    console.log('Navigating to:', page);
+    navigateToPage(page);
+  });
+
+  // Default page
+  navigateToPage('selectedPool');
+}
 
     function navigateToPage(page) {
       console.log('Showing page:', page);
