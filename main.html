@@ -380,10 +380,10 @@
                 <span>Selected Pool</span>
               </a>
 
-              <a href="#" class="dropdown-item" data-page="retentionPool" data-disabled="true">
+              <a href="#" class="dropdown-item" data-page="retentionPage">
                 <i class="fa-regular fa-clock"></i>
                 <span>Retention Pool</span>
-                <span class="coming-tooltip">Coming soon</span>
+                <!-- <span class="coming-tooltip">Coming soon</span> -->
               </a>
 
               <a href="#" class="dropdown-item" data-page="highlightPool" data-disabled="true">
@@ -697,8 +697,70 @@
         </div>
 
 
-
 </div>
+
+<!-- ================= Retention Pool Page ================= -->
+<div class="main-page hidden" id="retentionPage">
+  <div class="retention-page">
+
+    <!-- STATS -->
+    <div class="stats-section">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div class="stat-info">
+          <h3>0</h3>
+          <p>Completed Retention</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fa-solid fa-clock"></i>
+        </div>
+        <div class="stat-info">
+          <h3>0</h3>
+          <p>Pending Retention</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOP BAR -->
+    <div class="top-bar">
+      <div>
+        <h5>Retention Pool</h5>
+      </div>
+
+      <div class="search-filter-section">
+        <div class="search-box">
+          <i class="fa-solid fa-search"></i>
+          <input
+            type="text"
+            placeholder="Search retention..."
+          />
+        </div>
+
+        <button class="refresh-btn">
+          <i class="fa-solid fa-rotate"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- CONTENT (EMPTY STATE ONLY FOR NOW) -->
+    <div class="retention-content-wrapper">
+      <div class="empty-state">
+        <i class="fa-solid fa-clock"></i>
+        <h3>No Retention Records</h3>
+        <p>Retention data will appear once candidates join.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+
 </div>
 
 
@@ -815,19 +877,22 @@
           document.getElementById('schedulePage').classList.remove('hidden');
           loadScheduledCandidateData();
              // 🔥 RESET FILTER TO ALL EVERY LOAD
-  selectedFilter = "all";
+          selectedFilter = "all";
 
-  const btn = document.getElementById("filterBtn");
-  if (btn) {
-    btn.innerHTML = 'All <i class="fa-solid fa-caret-down"></i>';
+          const btn = document.getElementById("filterBtn");
+          if (btn) {
+            btn.innerHTML = 'All <i class="fa-solid fa-caret-down"></i>';
 
-  }
+          }
           break;
         case 'selectedPool':
         document.getElementById('selectedPage').classList.remove('hidden');
           loadSelectedCandidateData();
           // Add your selected pool page logic here
           break;
+        case 'retentionPage':
+        document.getElementById('retentionPage').classList.remove('hidden');
+        break;  
         case 'matchfinder':
           // Add your matchfinder page logic here
           break;
@@ -3164,9 +3229,9 @@ function formatScheduledDateTimeParts(dateVal, timeVal) {
         minutes = t.getMinutes();
       }
     }
-
-    dateObj.setHours(hours, minutes, 0, 0);
-
+if (dateObj instanceof Date && !isNaN(dateObj)) {
+  dateObj.setHours(hours, minutes, 0, 0);
+}
     return {
       dateLine: dateObj.toLocaleString("en-US", {
         weekday: "short",
@@ -3968,22 +4033,29 @@ setTimeout(()=>{
 /******************************
  DATE HELPERS
 ******************************/
-function normalizeDate(d){
+function normalizeDate(d) {
+  if (!d) return null;
+
   const x = new Date(d);
-  x.setHours(0,0,0,0);
+  if (isNaN(x)) return null;
+
+  x.setHours(0, 0, 0, 0);
   return x;
 }
 
-function getToday(){
+function getToday() {
   const t = new Date();
-  t.setHours(0,0,0,0);
+  if (isNaN(t)) return null;
+
+  t.setHours(0, 0, 0, 0);
   return t;
 }
-
-function getTomorrow(){
+function getTomorrow() {
   const t = new Date();
-  t.setDate(t.getDate()+1);
-  t.setHours(0,0,0,0);
+  if (isNaN(t)) return null;
+
+  t.setDate(t.getDate() + 1);
+  t.setHours(0, 0, 0, 0);
   return t;
 }
 
@@ -4952,12 +5024,225 @@ function submitJoinWithChanges(
     salary
   });
 
-   // 🔹 Call GAS here
+   // 🔹 Call GAS hereinnerHTML
   google.script.run
     .withSuccessHandler(() => closeUpdatePopup())
     .updateJoinedCandidates(employeeId, profileId, interviewId,company, joiningDate,salary);
 
 }
+
+//=================Retention Pool===========================
+
+//: Loader function (entry point)
+
+function loadRetentionPool() {
+  google.script.run
+    .withSuccessHandler(renderRetentionPool)
+    .withFailureHandler(err => {
+      console.error("Retention Pool Error:", err);
+    })
+    .getRetentionPool();
+}
+
+//Main render function
+
+function renderRetentionPool(data) {
+   console.log("Retention render called with:", data); // 👈 ADD THIS LINE
+
+  const container = document.querySelector(".retention-content-wrapper");
+  if (!container) return;
+
+  container.innerHTML = "";
+  
+
+  if (!Array.isArray(data) || data.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <i class="fa-solid fa-clock"></i>
+        <h3>No Retention Records</h3>
+        <p>Retention data will appear once candidates join.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const grouped = splitRetentionByStatus(data);
+
+  container.appendChild(
+    buildRetentionSection(
+      "Pending & Ongoing Retention",
+      grouped.pendingOngoing
+    )
+  );
+
+  container.appendChild(
+    buildRetentionSection(
+      "Completed Retention",
+      grouped.completed
+    )
+  );
+
+  container.appendChild(
+    buildRetentionSection(
+      "Resignation / Termination",
+      grouped.resigned
+    )
+  );
+}
+
+//Status grouping logic (LOCKED RULES)
+
+function splitRetentionByStatus(data) {
+  const pendingOngoing = [];
+  const completed = [];
+  const resigned = [];
+
+  data.forEach(item => {
+    const status = (item.status || "").toLowerCase().trim();
+
+    if (status === "completed") {
+      completed.push(item);
+    } 
+    else if (status === "resignation" || status === "termination") {
+      resigned.push(item);
+    } 
+    else {
+      // joined / pending / ongoing / empty
+      pendingOngoing.push(item);
+    }
+  });
+
+  return {
+    pendingOngoing,
+    completed,
+    resigned
+  };
+}
+
+//Section builder (collapsible ready)
+
+function buildRetentionSection(title, list) {
+  const section = document.createElement("div");
+  section.className = "retention-section";
+
+  section.innerHTML = `
+    <div class="section-header">
+      <h4>${title}</h4>
+      <i class="fa-solid fa-chevron-down"></i>
+    </div>
+
+    <div class="section-body">
+      <div class="retention-grid">
+        ${
+          list.length
+            ? list.map(createRetentionCard).join("")
+            : `<div class="empty-state small">No records</div>`
+        }
+      </div>
+    </div>
+  `;
+
+  // optional collapse behavior (can keep for later)
+  const header = section.querySelector(".section-header");
+  const body = section.querySelector(".section-body");
+
+  // header.addEventListener("click", () => {
+  //   body.classList.toggle("hidden");
+  // });
+
+  return section;
+}
+
+//Retention card generator
+
+function createRetentionCard(item) {
+  const status = (item.status || "").toLowerCase();
+  const isCompleted = status === "completed";
+  const isExited = status === "resignation" || status === "termination";
+
+  return `
+    <div class="retention-card">
+
+      <!-- HEADER -->
+      <div class="retention-card-header">
+        <div>
+          <div class="retention-name">
+            ${item.candidateName || "—"}
+          </div>
+          <div class="retention-company">
+            <i class="fa-solid fa-building"></i>
+            ${item.companyName || "—"}
+          </div>
+        </div>
+
+        <button class="package-btn"
+          data-salary="${item.salary || ""}"
+          data-joining="${item.joiningDate || ""}">
+          Package Details
+        </button>
+      </div>
+
+      <!-- PROGRESS -->
+      <div class="retention-progress">
+        <div class="progress-label">
+          Retention Period
+          ${
+            isCompleted
+              ? `<span class="status-text completed">Completed</span>`
+              : isExited
+                ? `<span class="status-text exited">${item.status}</span>`
+                : ""
+          }
+        </div>
+
+        <div class="progress-bar">
+          <div class="progress-fill ${isCompleted ? "completed" : ""}"></div>
+        </div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="retention-actions">
+        <button class="danger-btn" title="Resign / Terminate">
+          <i class="fa-solid fa-user-slash"></i>
+        </button>
+
+        <button class="complete-btn ${isCompleted ? "active" : "disabled"}">
+          Completed
+        </button>
+      </div>
+
+    </div>
+  `;
+}
+
+
+//trigger
+
+function showPage(pageId) {
+  document.querySelectorAll(".main-page").forEach(p => p.classList.add("hidden"));
+  document.getElementById(pageId)?.classList.remove("hidden");
+}
+
+
+// ✅ Retention Pool loader (AFTER page is shown)
+document.addEventListener("click", function (e) {
+  const item = e.target.closest(".dropdown-item");
+  if (!item) return;
+
+  const page = item.getAttribute("data-page");
+  if (page !== "retentionPage") return;
+
+  console.log("Retention sidebar clicked → waiting for page render");
+
+  // Wait until navigation + DOM updates finish
+  setTimeout(() => {
+    console.log("Loading retention data AFTER page is shown");
+    loadRetentionPool();
+  }, 0);
+});
+
+
+//==========================================================
 
 
 
