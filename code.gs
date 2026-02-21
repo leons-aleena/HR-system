@@ -766,7 +766,7 @@ function updateInteviewResultsToSheet(decision, employeeId, profileId, interview
       }
 
       // ---------- GHOSTED ----------
-      if (decisionLower === "ghosted") {
+      if (decisionLower === "ghosted (p1)" || decisionLower === "ghosted (p2)") {
 
         let val = row[16] || "";
         val = val ? `${val}, ${company}` : company;
@@ -1128,36 +1128,44 @@ function updateCompanyReschedule(employeeId, profileId, interviewId, company) {
   }
 }
 
-
-// ------------generete g meet-----------------------
 function createMeetFromForm(date, time, company) {
+  const start = new Date(`${date}T${time}:00`);
+  const end = new Date(start.getTime() + 60 * 1000);
 
-  const startDateTime = new Date(date + "T" + time);
-
-  // start 2 min before
-  startDateTime.setMinutes(startDateTime.getMinutes() - 2);
-
-  const endDateTime = new Date(startDateTime.getTime() + 30 * 60000);
-
-  const event = CalendarApp.getDefaultCalendar().createEvent(
-    "Virtual interview - " + company,   // ← title in calendar
-    startDateTime,
-    endDateTime,
-    {
-      description: "Virtual interview with " + company,
-      conferenceData: {
-        createRequest: {
-          requestId: "meet-" + new Date().getTime(),
-          conferenceSolutionKey: { type: "hangoutsMeet" }
-        }
+  const event = {
+    summary: `Interview – ${company}`,
+    description: `Company: ${company}`,
+    start: {
+      dateTime: start.toISOString(),
+      timeZone: "Asia/Kolkata"
+    },
+    end: {
+      dateTime: end.toISOString(),
+      timeZone: "Asia/Kolkata"
+    },
+    conferenceData: {
+      createRequest: {
+        requestId: Utilities.getUuid(),
+        conferenceSolutionKey: { type: "hangoutsMeet" }
       }
     }
+  };
+
+  const createdEvent = Calendar.Events.insert(
+    event,
+    "primary",
+    { conferenceDataVersion: 1 }
   );
 
-  const meetLink =
-    event.getConferenceData().getEntryPoints()[0].getUri();
+  const meetLink = createdEvent.conferenceData.entryPoints
+    .find(e => e.entryPointType === "video")
+    .uri;
 
-  return meetLink;
+  // 🔍 DEBUG LOG
+  console.log("Generated Google Meet link:", meetLink);
+  Logger.log("Generated Google Meet link: %s", meetLink);
+
+  return { meetLink };
 }
 
 
@@ -1277,6 +1285,53 @@ function scheduleMassWalkin(employeeId,data) {
 }
 
 
+// ------------------highlights---------------------
+function updateCandidateHighlights(profileId, reason, tags) {
+  const sheet = SpreadsheetApp.getActive()
+    .getSheetByName("Candidate pool");
+
+  const data = sheet.getRange("A:A").getValues(); // Profile IDs
+  const rowIndex = data.findIndex(row => row[0] == profileId);
+
+  if (rowIndex === -1) {
+    return { success: false, message: "Profile not found" };
+  }
+
+  const formattedValue = reason + " (" + tags.join(",") + ")";
+
+  // Column AA = 27
+  sheet.getRange(rowIndex + 1, 27).setValue(formattedValue);
+
+  return { success: true };
+}
+
+function getCandidateHighlight(profileId) {
+  const sheet = SpreadsheetApp.getActive()
+    .getSheetByName("Candidate pool");
+
+  const data = sheet.getRange("A:AA").getValues();
+  const row = data.find(r => r[0] == profileId);
+
+  if (!row) return null;
+
+  const cellValue = row[26]; // Column AA
+
+  if (!cellValue) return null;
+
+  const match = cellValue.match(/(.*)\((.*)\)/);
+
+  if (!match) {
+    return {
+      reason: cellValue,
+      tags: []
+    };
+  }
+
+  return {
+    reason: match[1].trim(),
+    tags: match[2].split(",").map(t => t.trim())
+  };
+}
 
 // --------------------------------------Retention Pool------------------------------------
 

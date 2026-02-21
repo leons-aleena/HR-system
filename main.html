@@ -63,44 +63,66 @@
 
 
   <!-- Candidate Details Modal -->
-<div class="modal-overlay candidate-details-modal" id="candidateDetailsModal">
-  <div class="candidate-details">
-    <div class="group">
+<div class="details-modal" id="candidateDetailsModal">
 
-      <div class="text-wrapper">Candidate Details</div>
+  <div class="details-modal-card">
 
-      <div class="div">
-        <div class="text-wrapper-2"><i class="fa-solid fa-user"> </i><span>Name</span></div>
-        <div class="text-wrapper-9" id="cd-name">—</div>
+    <h2 class="details-modal-title">Candidate Details</h2>
 
-        <div class="text-wrapper-3"><i class="fa-solid fa-id-card"></i><span>Profile ID</span> </div>
-        <div class="text-wrapper-10" id="cd-profile">—</div>
+    <div class="details-modal-body">
 
-        <div class="text-wrapper-4"><i class="fa-solid fa-person-half-dress"></i><span>Gender</span> </div>
-        <div class="text-wrapper-11" id="cd-gender">—</div>
-
-        <div class="text-wrapper-5"><i class="fa-solid fa-briefcase"></i><span>Experience</span> </div>
-        <div class="text-wrapper-12" id="cd-exp">—</div>
-
-        <div class="text-wrapper-6"><span>Years of Experience</span> </div>
-        <div class="text-wrapper-13" id="cd-years">—</div>
-
-        <div class="text-wrapper-7"><i class="fa-solid fa-language"></i><span>Language</span> </div>
-        <div class="text-wrapper-14" id="cd-lang">—</div>
-
-        <div class="text-wrapper-8"><i class="fa-solid fa-graduation-cap"></i><span>Highest Qualification</span> </div>
-        <div class="text-wrapper-15" id="cd-qual">—</div>
-
-        
+      <div class="details-modal-row">
+        <i class="fa fa-user"></i>
+        <span class="details-modal-label">Name :</span>
+        <span class="details-modal-value" id="cd-name"></span>
       </div>
 
-      <div class="frame" onclick="closeViewFullCandidateDetails()">
-        <div class="text-wrapper-16">Close</div>
+      <div class="details-modal-row">
+        <i class="fa fa-id-card"></i>
+        <span class="details-modal-label">Profile ID :</span>
+        <span class="details-modal-value" id="cd-profile"></span>
+      </div>
+
+      <div class="details-modal-row">
+        <i class="fa fa-venus-mars"></i>
+        <span class="details-modal-label">Gender :</span>
+        <span class="details-modal-value" id="cd-gender"></span>
+      </div>
+
+      <div class="details-modal-row">
+        <i class="fa fa-briefcase"></i>
+        <span class="details-modal-label">Experience :</span>
+        <span class="details-modal-value" id="cd-exp"></span>
+      </div>
+
+      <div class="details-modal-row">
+        <i class="fa fa-clock"></i>
+        <span class="details-modal-label">Years of Experience :</span>
+        <span class="details-modal-value" id="cd-years"></span>
+      </div>
+
+      <div class="details-modal-row">
+        <i class="fa fa-language"></i>
+        <span class="details-modal-label">Language :</span>
+        <span class="details-modal-value" id="cd-lang"></span>
+      </div>
+
+      <div class="details-modal-row">
+        <i class="fa fa-graduation-cap"></i>
+        <span class="details-modal-label">Highest Qualification :</span>
+        <span class="details-modal-value" id="cd-qual"></span>
       </div>
 
     </div>
+
+    <button class="details-modal-close"
+      onclick="closeViewFullCandidateDetails()">Close</button>
+
   </div>
+
 </div>
+
+
 
 
 
@@ -108,11 +130,14 @@
 
   <!-- Schedule Modal -->
   <div class="modal-overlay schedule-modal" id="scheduleModal">
-    <div class="modal">
+    <div class="modal" >
       <div class="interview-modal-title" id="interviewTypeSelection" data-profile-id="">
         <h2><span>Select Type of Interview</span></h2>
         <button onclick="selectInterviewType('virtual',this)">Virtual Interview</button>
         <button onclick="selectInterviewType('walkin',this)">Walk-in Interview</button>
+        
+  <button id="outsideCloseBtn" class="modal-btn confirm" onclick="closeScheduleModal()">Close</button>
+
       </div>
 
       <div class="modal-content">
@@ -145,7 +170,12 @@
   </small>
             </div>
 
-            <button type="submit" class="submit-btn"  >Submit</button>
+<div class="modal-actions">
+  <button class="modal-btn confirm" onclick="closeScheduleModal()">Close</button>
+  <button type="submit" form="walkinForm" class="modal-btn submit-btn">Submit</button>
+  
+</div>
+
           </form>
         </div>
 
@@ -168,12 +198,18 @@
               <label for="meetingLink">Meeting Link</label>
               <input type="url" id="meetingLink" name="meetingLink" placeholder="Meeting link" required onclick="generateGoogleMeetLink()">
             </div>
-            <button type="submit" class="submit-btn" >Submit</button>
+            
+            <div class="modal-actions">
+              <button class="modal-btn confirm" onclick="closeScheduleModal()">Close</button>
+  <button type="submit" form="walkinForm" class="modal-btn submit-btn">Submit</button>
+  
+</div>
+
           </form>
         </div>
       </div>
-      <button class="modal-btn confirm" onclick="closeScheduleModal()">Close</button>
-    </div>
+
+      </div>
   </div>
 
 
@@ -305,9 +341,10 @@
       <input type="number" id="finalSalary" placeholder="Enter Monthly compensation">
     </div>
 
-    <label class="final-label"><i class="fa-thin fa-calendar-days"></i>Joining Date</label>
+    <label class="final-label">Joining Date</label>
     <div class="final-input-wrapper">
-      <input type="date" id="finalJoiningDate">
+      <span class="currency"><i class="fa-solid fa-calendar-day"></i></span>
+      <input type="date" id="finalJoiningDate" placeholder="choose the joining date">
     </div>
 
     <div class="final-actions">
@@ -507,8 +544,9 @@
 
               </div>
 
-              <button class="refresh-btn" id="refreshBtn">
-  <i class="fa-solid fa-rotate" id="refreshIcon"></i>
+         <button class="refresh-btn"
+  onclick="handleRefresh(this, loadCandidateData)">
+  <i class="fa-solid fa-rotate"></i>
 </button>
 
 
@@ -589,9 +627,9 @@
   </button>
 
   <div class="dropdown" id="dropdown">
-    <div class="dropdown-item">All</div>
-    <div class="dropdown-item">Walkin</div>
-    <div class="dropdown-item">Virtual</div>
+    <div class="dropdown-item-filter">All</div>
+    <div class="dropdown-item-filter">Walkin</div>
+    <div class="dropdown-item-filter">Virtual</div>
   </div>
 </div>
 
@@ -610,9 +648,11 @@
       </div>
       
 
-      <button class="refresh-btn">
-        <i class="fa-solid fa-rotate"></i>
-      </button>
+      <button class="refresh-btn"
+  onclick="handleRefresh(this, loadCandidateData)">
+  <i class="fa-solid fa-rotate"></i>
+</button>
+
     </div>
   </div>
         </div>
@@ -660,13 +700,17 @@
   <div class="selected-head-title">Selected Pool</div>
 
   <div class="selected-head-actions">
-    
-    <input
-  type="text"
-  class="selected-head-search"
-  placeholder="Search Your Interview....."
-  onkeyup="searchSelectedCandidates(this.value)"
+  
+
+     <div class="scheduled-search-box"> <i class="fa-solid fa-search"></i> 
+     <input 
+  type="text" 
+  placeholder="Search your interview..." 
+  onkeyup="searchSelectedCandidates(this.value)" 
 />
+
+     </div>
+
 
 <div class="selected-company-filter" style="position: relative; display: inline-block;">
   <button class="selected-head-icon-btn" onclick="toggleCompanyDropdown()"><i class="fa-solid fa-filter"></i></button>
@@ -685,8 +729,10 @@
   <input type="date" id="selectedCustomDatePicker" style="display:none;">
     
     </div>
-
-    <button class="selected-head-icon-btn"><i class="fa-solid fa-arrows-rotate"></i></button>
+<button class="refresh-btn"
+  onclick="handleRefresh(this, loadSelectedCandidateData)">
+  <i class="fa-solid fa-rotate"></i>
+</button>
   </div>
 </div>
 
@@ -901,6 +947,21 @@
           break;
       }
     }
+
+
+    const skipIds = ["customDatePicker", "selectedCustomDatePicker"];
+
+document.querySelectorAll('input[type="date"]').forEach(el => {
+  if (!skipIds.includes(el.id)) {
+    el.min = new Date().toISOString().split("T")[0];
+  }
+});
+
+const today = new Date().toISOString().split("T")[0];
+document.getElementById("walkinDate").min = today;
+
+
+
 
 
     // global variable
@@ -1165,7 +1226,7 @@ const pendingCompanyCount =
       <button onclick="AddNote('${safeProfileId}','${currentEmployeeId}')">
         <i class="fa-solid fa-note-sticky"></i> Add Note
       </button>
-      <button onclick="highlightCandiate('${safeProfileId}','${currentEmployeeId}')">
+      <button onclick="openHighlightModal('${safeProfileId}','${currentEmployeeId}')">
         <i class="fa-solid fa-highlighter"></i> Highlight
       </button>
     </div>
@@ -1285,34 +1346,141 @@ document.addEventListener("click", ()=>{
       `;
     }
 
+const highlightTags = [
+  "Average",
+  "Good",
+  "Communication",
+  "High Salary Seeking",
+  "Product Pitching",
+  "Confidence",
+  "TrackPi",
+  "Negotiation"
+];
 
-    // =================refresh=======================
-    function refreshCandidateData() {
-  const btn = document.getElementById("refreshBtn");
-  const icon = document.getElementById("refreshIcon");
+function createHighlightModal() {
+  if (document.getElementById("highlightModal")) return;
 
-  // Disable button during process
-  btn.disabled = true;
-  loadCandidateData()
+  const modalHTML = `
+    <div class="highlight-modal" id="highlightModal">
+      <div class="highlight-modal-content">
 
-  // 1️⃣ Show spinner
-  icon.className = "fa-solid fa-spinner";
+        <div id="highlightLoader" class="highlight-loader">
+          <div class="spinner"></div>
+          <p>Loading highlight data...</p>
+        </div>
 
-  // After 5 seconds → show check icon
-  setTimeout(() => {
-    icon.className = "fa-solid fa-square-check";
+        <div id="highlightForm" style="display:none;">
+          <h3>1. Please Specify the Reason for Highlighting the candidate for Future</h3>
+          <textarea id="highlightReason" rows="4"></textarea>
 
-    // After 2 more seconds → back to refresh icon
-    setTimeout(() => {
-      icon.className = "fa-solid fa-rotate";
-      btn.disabled = false;
-    }, 2000);
+          <h3>2. Add relevant Tags</h3>
+          <div id="tagContainer" class="highlight-tag-container"></div>
 
-  }, 4000);
+          <div class="highlight-modal-actions">
+            <button class="highlight-submit" onclick="submitHighlight()">Submit</button>
+            <button class="highlight-cancel" onclick="closeHighlightModal()">Cancel</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML("beforeend", modalHTML);
 }
 
-// attach event
-document.getElementById("refreshBtn").addEventListener("click", refreshCandidateData);
+let selectedTags = [];
+let selectedProfileId = null;
+let selectedEmployeeId = null;
+
+function openHighlightModal(profileId, employeeId) {
+  selectedProfileId = profileId;
+  selectedEmployeeId = employeeId;
+
+  let modal = document.getElementById("highlightModal");
+  if (!modal) {
+    createHighlightModal();
+    modal = document.getElementById("highlightModal");
+  }
+
+  modal.style.display = "flex";
+
+  // Show loader
+  document.getElementById("highlightLoader").style.display = "flex";
+  document.getElementById("highlightForm").style.display = "none";
+
+  google.script.run
+    .withSuccessHandler(function (data) {
+
+      selectedTags = [];
+
+      if (data) {
+        document.getElementById("highlightReason").value = data.reason || "";
+        selectedTags = data.tags || [];
+      } else {
+        document.getElementById("highlightReason").value = "";
+      }
+
+      renderTags();
+
+      // Hide loader, show form
+      document.getElementById("highlightLoader").style.display = "none";
+      document.getElementById("highlightForm").style.display = "block";
+    })
+    .getCandidateHighlight(profileId);
+}
+
+function closeHighlightModal() {
+  document.getElementById("highlightModal").style.display = "none";
+  selectedTags = [];
+  document.getElementById("highlightReason").value = "";
+}
+
+function renderTags() {
+  const container = document.getElementById("tagContainer");
+  container.innerHTML = "";
+
+  highlightTags.forEach(tag => {
+    const tagBtn = document.createElement("div");
+    tagBtn.className = "highlight-tag";
+    tagBtn.innerText = tag;
+
+    if (selectedTags.includes(tag)) {
+      tagBtn.classList.add("active");
+    }
+
+    tagBtn.onclick = function () {
+      tagBtn.classList.toggle("active");
+
+      if (selectedTags.includes(tag)) {
+        selectedTags = selectedTags.filter(t => t !== tag);
+      } else {
+        selectedTags.push(tag);
+      }
+    };
+
+    container.appendChild(tagBtn);
+  });
+}
+
+function submitHighlight() {
+  const reason = document.getElementById("highlightReason").value;
+
+  google.script.run
+    .withSuccessHandler(function (res) {
+      if (res.success) {
+        showSuccessNotification("Highlight saved successfully");
+        closeHighlightModal();
+      } else {
+        showErrorModal(res.message);
+      }
+    })
+    .updateCandidateHighlights(
+      selectedProfileId,
+      reason,
+      selectedTags
+    );
+}
 
 
     // ===== SEARCH FUNCTIONALITY =====
@@ -1878,7 +2046,7 @@ function generateGoogleMeetLink() {
   const company = document.getElementById("virtualCompanySelect").value;
 
   if (!date || !time || !company) {
-    alert("Select company, date and time first");
+    showErrorModal("Select company, date and time first");
     return;
   }
 
@@ -1907,6 +2075,7 @@ function generateGoogleMeetLink() {
 
     // ===== SCHEDULE MODAL =====
     function openScheduleModal(profileId) {
+      
       document.getElementById('interviewTypeSelection').dataset.profileId = profileId;
       document.getElementById('virtualContent').classList.add('hidden');
       document.getElementById('walkinContent').classList.add('hidden');
@@ -1915,6 +2084,8 @@ function generateGoogleMeetLink() {
     }
 
     function selectInterviewType(type, btn) {
+
+
       const profileId = btn.closest('#interviewTypeSelection').dataset.profileId;
       const candidate = candidatePoolData.find(c => c.profileId === profileId);
       
@@ -2476,15 +2647,25 @@ function searchCompany(value) {
 function applyFilter() {
   const selected = [...filterCompanies];
 
-  const filteredCandidates = candidatePoolData.filter(candidate =>
-    candidate.selectedCompanies.some(company =>
+  const filteredCandidates = candidatePoolData.filter(candidate => {
+    const allCompanyFields = [
+      ...(candidate.qualifiedCompanies || []),
+      ...(candidate.scheduledCompanies || []),
+      ...(candidate.rescheduledCompanies || []),
+      ...(candidate.candidateRejected || []),
+      ...(candidate.ghostedCompanies || []),
+      ...(candidate.companyRejected || []),
+      ...(candidate.selectedCompanies || []),
+      ...(candidate.shortlistedWalkinCompanies || [])
+    ];
+
+    return allCompanyFields.some(company =>
       selected.includes(company)
-    )
-  );
+    );
+  });
 
   renderCandidateCards(filteredCandidates);
 }
-
 
 function openFilterModal() {
   document.getElementById("filterModal").style.display = "flex";
@@ -2617,7 +2798,7 @@ function banSelected() {
 
 function openMassWalkinModal() {
   if (!selectedProfiles.length) {
-    alert("Select candidates first");
+    showErrorModal("Select candidates first");
     return;
   }
 
@@ -2627,7 +2808,7 @@ function openMassWalkinModal() {
     .filter(Boolean);
 
   if (!selectedCandidates.length) {
-    alert("Candidate data missing");
+    showErrorModal("Candidate data missing");
     return;
   }
 
@@ -2647,7 +2828,7 @@ function openMassWalkinModal() {
   }
 
   if (!commonCompanies.length) {
-    alert("No common companies for selected candidates");
+    showErrorModal("No common companies for selected candidates");
     return;
   }
 
@@ -2741,7 +2922,7 @@ function openMassWalkinModal() {
     };
 
     if (!payload.date || !payload.time || !payload.address || !payload.mapsLink) {
-      alert("Fill all fields");
+      showErrorModal("Fill all fields");
       return;
     }
 
@@ -2753,19 +2934,47 @@ function openMassWalkinModal() {
     google.script.run
   .withSuccessHandler(res => {
     console.log(res);
-    alert("Walk-in scheduled");
+    showSuccessNotification("Walk-in scheduled");
   })
   .scheduleMassWalkin(currentEmployeeId,payload);
 
 
     overlay.remove();
-    alert("Walk-in scheduled");
   };
 }
 
 
 
 // ===========================================================================================
+function handleRefresh(btn, callbackFn) {
+  const icon = btn.querySelector("i");
+
+  // disable button
+  btn.disabled = true;
+
+  // run the actual refresh logic
+  if (callbackFn) callbackFn();
+
+  // show spinner
+  icon.className = "fa-solid fa-spinner";
+
+  // after 4s → show check
+  setTimeout(() => {
+    icon.className = "fa-solid fa-square-check";
+    icon.style.color = "green";
+    
+  showSuccessNotification("Refresh completed successfully!")
+
+
+    // after 2s → back to refresh
+    setTimeout(() => {
+      icon.className = "fa-solid fa-rotate";
+      btn.disabled = false;
+      icon.style.color = "";
+    }, 2000);
+
+  }, 4000);
+}
 
 
 // =======================================SCHEDULE POOL==================================================
@@ -2878,6 +3087,7 @@ function searchScheduledCandidates(searchText) {
 
     const profileId = candidate.profileId?.toLowerCase() || "";
     const interviewId = candidate.interviewId?.toLowerCase() || "";
+    const company = candidate.scheduledCompanyName?.toLowerCase() || "";
 
     // get name + phone from master pool
     const master = candidatePoolData.find(
@@ -2891,6 +3101,7 @@ function searchScheduledCandidates(searchText) {
       profileId.includes(text) ||
       interviewId.includes(text) ||
       name.includes(text) ||
+      company.includes(text) ||
       phone.includes(text)
     );
   });
@@ -2913,7 +3124,7 @@ document.addEventListener("click", ()=>{
   dropdown.classList.remove("show");
 });
 
-document.querySelectorAll(".dropdown-item").forEach(item=>{
+document.querySelectorAll(".dropdown-item-filter").forEach(item=>{
   item.addEventListener("click", ()=>{
 
     const selected = item.textContent.trim().toLowerCase();
@@ -3050,6 +3261,35 @@ function renderScheduledCandidateCards(candidates, candidateData) {
   const container = document.getElementById("ScheduledCandidatePoolContainer");
   const employeeId = currentEmployeeId;
 
+// ✅ SORT candidates by actual Interview Date + Time
+candidates.sort((a, b) => {
+
+  function combineDateAndTime(dateStr, timeStr) {
+    if (!dateStr) return new Date(0);
+
+    const dateObj = new Date(dateStr);
+
+    if (timeStr) {
+      const timeObj = new Date(timeStr);
+
+      // Set hours & minutes from time into date
+      dateObj.setHours(
+        timeObj.getHours(),
+        timeObj.getMinutes(),
+        0,
+        0
+      );
+    }
+
+    return dateObj;
+  }
+
+  const dateTimeA = combineDateAndTime(a.interviewDate, a.interviewTime);
+  const dateTimeB = combineDateAndTime(b.interviewDate, b.interviewTime);
+
+  return dateTimeA - dateTimeB; // earliest first
+});
+
 
   /* ===== COUNTS ===== */
   const totalCount = candidates?.length || 0;
@@ -3170,8 +3410,7 @@ function renderScheduledCandidateCards(candidates, candidateData) {
 
 
           <button class="scheduled-update-btn"
-  onclick="toggleUpdateResultPopup(event, '${candidate.employeeId}','${candidate.profileId}','${candidate.interviewId}','${candidate.scheduledCompanyName
-}', this)">
+  onclick="toggleUpdateResultPopup(event, '${candidate.employeeId}','${candidate.profileId}','${candidate.interviewId}','${candidate.scheduledCompanyName}', this)">
   Update Result
 </button>
 
@@ -3209,6 +3448,7 @@ candidates.forEach(candidate => {
 
 
 }
+
 
 
 
@@ -3350,6 +3590,7 @@ function markCompanyReschedule(employeeId, profileId, interviewId,company) {
     `,
     () => {
       // ✅ Confirmed
+      showSuccessNotification("Interview Rescheduled by Company")
 
       closeScheduledConfirmation();
       closeUpdatePopup(); // if any modal is open
@@ -3641,16 +3882,21 @@ function submitRescheduleReasonFinal(employeeId, profileId, interviewId, company
     reason
   });
 
- 
-
-  // 🔹 Close reschedule popup
-  // closeUpdatePopup();
-
-  // 🔹 Call GAS here
   google.script.run
-    .withSuccessHandler(() => closeUpdatePopup())
-    .updateInteviewResultsToSheet("Reschedule",employeeId, profileId, interviewId,company, reason);
+    .withSuccessHandler(() => {
+      showSuccessNotification("Reschedule submitted successfully"); // 👈 add here
+      closeUpdatePopup(); // optional: keep after notification
+    })
+    .updateInteviewResultsToSheet(
+      "Reschedule",
+      employeeId,
+      profileId,
+      interviewId,
+      company,
+      reason
+    );
 }
+
 
 
 //ghosted
@@ -3676,9 +3922,10 @@ function markCandidateGhosted(employeeId, profileId, interviewId, company) {
       // 🔹 Call GAS / backend here
       google.script.run
         .withSuccessHandler(() => {
+          showSuccessNotification("Candidate marked as Ghostes")
           closeUpdatePopup();
         })
-        .updateInteviewResultsToSheet("Ghosted",employeeId, profileId, interviewId,company);
+        .updateInteviewResultsToSheet("Ghosted (P2)",employeeId, profileId, interviewId,company);
     }
   );
 }
@@ -3757,7 +4004,10 @@ function submitRejectedP2Final(employeeId, profileId, interviewId, company, reas
 
   // 🔹 Call backend here
   google.script.run
-    .withSuccessHandler(() => closeUpdatePopup())
+    .withSuccessHandler(() => {
+          showSuccessNotification("Marked Candidate Rejected ")
+          closeUpdatePopup()
+          })
     .updateInteviewResultsToSheet("Candidate Rejected (P2)",employeeId, profileId, interviewId,company, reason);
 }
 
@@ -3856,7 +4106,7 @@ function submitFinalDetails() {
   const joiningDate = document.getElementById("finalJoiningDate").value;
 
   if (!salary || !joiningDate) {
-    alert("Please fill all details");
+    showErrorModal("Please fill all details");
     return;
   }
 
@@ -3872,7 +4122,9 @@ function submitFinalDetails() {
 
   // 🔹 Call backend here
   google.script.run
-    .withSuccessHandler(() => closeFinalDetailsModal())
+    .withSuccessHandler(() => {
+      showSuccessNotification("Marked Candidate selected")
+      closeFinalDetailsModal()})
     .updateInteviewResultsToSheet("Selected",finalDetailsContext.employeeId, finalDetailsContext.profileId, finalDetailsContext.interviewId,finalDetailsContext.company, reason);
 
   // Backend call later
@@ -3965,7 +4217,9 @@ function submitCompanyRejectedFinal(employeeId, profileId, interviewId, company,
 
   // 🔹 Backend call here
   google.script.run
-    .withSuccessHandler(() => closeUpdatePopup())
+    .withSuccessHandler(() =>{ 
+      showSuccessNotification("Marked as Company Rejected")
+      closeUpdatePopup()})
     .updateInteviewResultsToSheet("Company Rejected",employeeId, profileId, interviewId,company, reason);
 }
 
@@ -4431,7 +4685,7 @@ function renderSelectedCandidateCards(candidates) {
   <!-- HEADER -->
   <div class="selected-card-header">
     <div class="selected-candidate-info">
-      <div class="selected-candidate-name">${safeName}</div>
+      <div class="selected-candidate-name" onclick="viewFullCandidateDetails('${candidate.profileId}')">${safeName}</div>
 
       <div class="selected-candidate-phone">
         <i class="fa-solid fa-phone selected-phone-icon"></i>
@@ -4454,10 +4708,12 @@ function renderSelectedCandidateCards(candidates) {
 
     <div class="selected-meta-actions">
 
+<div class="selected-tooltip-wrapper" data-tooltip="Reschedule Joining Date">
       <button class="selected-icon-btn"
   onclick="confirmRescheduleJoiningDate('${candidate.interviewId}')">
   <i class="fa-solid fa-arrow-right-arrow-left"></i>
 </button>
+</div>
 
       <!-- Selected Company -->
 <div class="selected-tooltip-wrapper" data-tooltip="${candidate.selectedCompanyName}">
@@ -4601,6 +4857,13 @@ function openJoinStatusPopup(employeeId, profileId, interviewId, company,joining
   `;
 
   document.body.appendChild(wrapper);
+
+   // Close when clicking outside (on overlay)
+  const overlay = wrapper.querySelector(".scheduled-update-popup-overlay");
+  overlay.addEventListener("click", function () {
+    wrapper.remove();
+  });
+
 }
 
 
@@ -4623,21 +4886,40 @@ function handleCandidateNotJoined(employeeId, profileId, interviewId, company) {
       <div class="scheduled-update-actions">
 
         <button class="scheduled-ghosted-btn"
-  onclick="openCompanyRejectionReason('${employeeId}','${profileId}','${interviewId}','${company}')">
-  Company Rejection
-</button>
+          onclick="openCompanyRejectionReason('${employeeId}','${profileId}','${interviewId}','${company}')">
+          Company Rejection
+        </button>
 
-<button class="scheduled-not-attended-btn"
-  onclick="openCandidateRejectionP3Reason('${employeeId}','${profileId}','${interviewId}','${company}')">
-  Candidate Rejection (P3)
-</button>
+        <button class="scheduled-not-attended-btn"
+          onclick="openCandidateRejectionP3Reason('${employeeId}','${profileId}','${interviewId}','${company}')">
+          Candidate Rejection (P3)
+        </button>
 
+        <button class="scheduled-not-attended-btn"
+          onclick="markCandidateGhostedP2('${employeeId}','${profileId}','${interviewId}','${company}')">
+          Ghosted (P2)
+        </button>
 
       </div>
     </div>
   `;
 
   document.body.appendChild(wrapper);
+
+  const overlay = wrapper.querySelector(".scheduled-update-popup-overlay");
+  const popup = wrapper.querySelector(".scheduled-update-popup");
+
+  // Close when clicking overlay
+  overlay.addEventListener("click", function () {
+    closeUpdatePopup();
+  });
+
+  // Optional: Close when clicking anywhere outside popup
+  wrapper.addEventListener("click", function (e) {
+    if (!popup.contains(e.target)) {
+      closeUpdatePopup();
+    }
+  });
 }
 
 function openCompanyRejectionReason(employeeId, profileId, interviewId, company) {
@@ -4792,6 +5074,37 @@ function submitCandidateRejectionP3(employeeId, profileId, interviewId, company,
     .withSuccessHandler(() => closeUpdatePopup())
     .updateInteviewResultsToSheet("Candidate Rejection (P3)",employeeId, profileId, interviewId,company, reason);
 
+}
+
+//ghosted P2
+function markCandidateGhostedP2(employeeId, profileId, interviewId, company) {
+
+  openScheduledConfirmation(
+    `
+      Are you sure to update<br>
+      interview status as<br>
+      <strong>Ghosted</strong>
+    `,
+    () => {
+      // ✅ CONFIRMED ACTION
+      console.log("GHOSTED CONFIRMED:", {
+        employeeId,
+        profileId,
+        interviewId
+      });
+
+      // Close any open update popups
+      // closeUpdatePopup();
+
+      // 🔹 Call GAS / backend here
+      google.script.run
+        .withSuccessHandler(() => {
+          showSuccessNotification("Candidate marked as Ghosted")
+          closeUpdatePopup();
+        })
+        .updateInteviewResultsToSheet("Ghosted (P2)",employeeId, profileId, interviewId,company);
+    }
+  );
 }
 
 
@@ -4951,7 +5264,7 @@ function handleJoinNo(
             '${company}',
             '${expectedDate}',
             '${expectedSalary}')">
-          Cancel
+          Go Back
         </button>
       </div>
     </div>
@@ -4977,7 +5290,7 @@ function confirmJoinWithChanges(
     document.getElementById("actualSalary").value;
 
   if (!actualDate && !actualSalary) {
-    alert("Please update joining date or salary.");
+    showErrorModal("Please update joining date or salary.");
     return;
   }
 
