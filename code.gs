@@ -549,7 +549,6 @@ if (normalizedType === 'scheduled' && normalizedStatus === 'scheduled') {
   };
 }
 
-
 function getInterviewScheduleCount(employeeId) {
   const sheet = SpreadsheetApp.getActive().getSheetByName('Historic Data');
   const data = sheet.getDataRange().getValues();
@@ -559,17 +558,20 @@ function getInterviewScheduleCount(employeeId) {
   today.setHours(0, 0, 0, 0); // normalize to midnight
 
   for (let i = 1; i < data.length; i++) {
-    const empId  = data[i][0]; // Col A
+    const empId = data[i][0];   // Col A
     const status = data[i][3]; // Col D
     const timestampCell = data[i][4]; // Col E
 
-    if (String(empId) === String(employeeId) &&
-        String(status).toLowerCase() === 'scheduled' &&
-        timestampCell) {
+    if (
+      String(empId) === String(employeeId) &&
+      String(status).toLowerCase() === 'scheduled' &&
+      timestampCell
+    ) {
+      const scheduledDate = new Date(timestampCell);
 
-      let scheduledDate;
+      if (isNaN(scheduledDate)) continue;
 
-      scheduledDate.setHours(0, 0, 0, 0); // ignore time
+      scheduledDate.setHours(0, 0, 0, 0); // safe now
 
       if (scheduledDate.getTime() === today.getTime()) {
         count++;
@@ -1330,3 +1332,100 @@ function getCandidateHighlight(profileId) {
     tags: match[2].split(",").map(t => t.trim())
   };
 }
+
+// --------------------------------------Retention Pool------------------------------------
+
+function getRetentionPool() {
+  try {
+    console.log("=== SERVER: getRetentionPool started ===");
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    const retentionSheet = ss.getSheetByName("Retention Pool");
+    const candidateSheet = ss.getSheetByName("Candidate Pool");
+
+    if (!retentionSheet) {
+      return { error: "Retention Pool sheet not found" };
+    }
+    if (!candidateSheet) {
+      return { error: "Candidate Pool sheet not found" };
+    }
+
+    // ---------- Candidate Pool lookup (profileId → name, phone) ----------
+    const candidateData = candidateSheet.getDataRange().getValues();
+    const candidateMap = {};
+
+    for (let i = 1; i < candidateData.length; i++) {
+      const row = candidateData[i];
+      const profileId = row[0]?.toString().trim();
+      if (!profileId) continue;
+
+      candidateMap[profileId] = {
+        candidateName: row[2]?.toString() || "",
+        phoneNumber: row[3]?.toString() || ""
+      };
+    }
+
+    // ---------- Retention Pool ----------
+    const retentionData = retentionSheet.getDataRange().getValues();
+
+    if (retentionData.length <= 1) {
+      return [];
+    }
+
+    const retentionPool = [];
+
+    for (let i = 1; i < retentionData.length; i++) {
+      const row = retentionData[i];
+
+      const employeeId = row[0]?.toString().trim();
+      const profileId  = row[1]?.toString().trim();
+      if (!employeeId || !profileId) continue;
+
+      // Column C: "Company Name (Job Title)"
+      const companyRaw = row[2]?.toString().trim() || "";
+      let companyName = "";
+      let jobTitle = "";
+
+      const match = companyRaw.match(/^(.+?)\s*\((.+?)\)$/);
+      if (match) {
+        companyName = match[1].trim();
+        jobTitle = match[2].trim();
+      } else {
+        companyName = companyRaw;
+      }
+
+      const candidateInfo = candidateMap[profileId] || {};
+
+      retentionPool.push({
+        employeeId,
+        profileId,
+
+        // candidate details
+        candidateName: candidateInfo.candidateName || "",
+        phoneNumber: candidateInfo.phoneNumber || "",
+
+        // retention details
+        companyName,
+        jobTitle,
+        status: row[3]?.toString().trim().toLowerCase() || "",
+        retentionTimeFrame: row[4]?.toString() || "",
+        joiningDate: row[5] instanceof Date
+          ? row[5].toISOString()
+          : row[5]?.toString() || "",
+        salary: row[6] || ""
+      });
+    }
+
+    console.log("✔ Retention records returned:", retentionPool.length);
+    return retentionPool;
+
+  } catch (error) {
+    console.error("❌ getRetentionPool error:", error);
+    return { error: error.toString() };
+  }
+}
+
+
+
+
