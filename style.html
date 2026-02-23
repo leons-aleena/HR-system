@@ -67,7 +67,6 @@ body {
   font-family: 'Inter', sans-serif;
   background-color: #f6c453; //yellow
   min-height: 100vh;
-  padding: 10px 20px;
 }
 
 .hidden {
@@ -76,38 +75,33 @@ body {
 
 /* ===== DASHBOARD LAYOUT ===== */
 
-/*
 html, body {
   background-color: #FFF6BF;
 }
 
 .dashboard-wrapper {
   box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
-}*/
+}
 
-/* ===== Global page ===== */
+/*
 html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  min-height: 100%;        /* ✅ allow growth */
-  background: #FFF6BF;
-  overflow-y: auto;       /* ✅ enable scrolling */
+  height: 100%;
+  background: #FFF6BF; 
 }
-
-/* ===== App wrapper ===== */
 .dashboard-wrapper {
-  min-height: 100vh;      /* ✅ at least viewport height */
-  background: var(--bg-lighter);
-  border-radius: 0;
-}
+  min-height: 100vh;
+}*/
+
 
 
 .dashboard-card {
   background: #fffceb;
   border-radius: 0;        /* 🔥 remove rounding */
   box-shadow: none;        /* 🔥 optional: remove floating look */
-  min-height: 100vh;
+  min-height: 98vh;
   display: flex;
 }
 
@@ -3104,12 +3098,12 @@ modal-overlay.schedule-modal{
 .stats-row {
   display: flex;
   gap: 28px;
-  margin-bottom: 20px;
+  margin-bottom:8px;
 }
 
 /* card */
 .stat-box {
-  background: #f7f7f7;
+  background: #ffffff;
   border-radius: 14px;
   padding: 15px;
   display: flex;
@@ -3117,7 +3111,6 @@ modal-overlay.schedule-modal{
   gap: 16px;
   min-width: 260px;
 
-  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
 }
 
 /* icon container (square bg) */
@@ -3162,12 +3155,19 @@ modal-overlay.schedule-modal{
 /* ===== HEADER ===== */
 .header-bar {
   padding:20px;
-  background-color:#fff;
+  background-color:#ffffff;
   border-radius:20px;
 
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+
+.header-bar h2{
+  font-size: 25px;
+  font-weight: 600;
+  color: #111;
 }
 
 .header-actions {
@@ -3348,8 +3348,18 @@ modal-overlay.schedule-modal{
 #ScheduledCandidatePoolContainer {
   display: grid;
   grid-template-columns: repeat(4, 1fr); /* ✅ 4 cards per row */
-  gap: 18px;
-  padding: 10px;
+  gap: 10px;
+  padding: 20px;
+   overflow-y: auto;
+  max-height: calc(100vh - 230px);
+  
+  min-height: calc(100vh - 230px);
+  background-color: #fff;
+
+  border-radius:20px;
+
+  margin-top:8px;
+ 
 }
 
 .scheduled-card {
@@ -3534,6 +3544,8 @@ modal-overlay.schedule-modal{
   background: #fff;
   border-radius: 10px;     /* rounded corners */
   border: 1px solid #e5e5e5; /* optional border */
+
+  margin-top:8px;
 
 }
 
@@ -3785,6 +3797,12 @@ modal-overlay.schedule-modal{
 .scheduled-more-btn:hover {
   color: #000;
 }
+
+.scheduled-card:nth-child(4n) .scheduled-more-dropdown,.selected-candidate-card:nth-child(4n) .scheduled-more-dropdown {
+  left: auto;
+  right: 20px;
+}
+
 
 .scheduled-more-dropdown {
   position: absolute;
@@ -4157,7 +4175,7 @@ modal-overlay.schedule-modal{
 .scheduled-confirmation {
   position: fixed;
   inset: 0;
-  z-index: 20000; /* higher than all other modals */
+  z-index: 99999999; /* higher than all other modals */
   display: none;
 }
 
@@ -4319,11 +4337,13 @@ modal-overlay.schedule-modal{
 
 
 /* =========================================SELECTED POOL=========================================== */
+
+
 .selected-stats-wrapper {
   display: flex;
   gap: 28px;
   background: #fffceb;
-  margin-bottom:15px;
+  margin-bottom:10px;
 }
 
 .selected-stat-box {
@@ -4333,7 +4353,9 @@ modal-overlay.schedule-modal{
   display: flex;
   align-items: center;
   gap: 16px;
-  min-width: 220px;
+  min-width: 210px;
+  min-height: 76px;
+  
   box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 }
 
@@ -4369,7 +4391,7 @@ modal-overlay.schedule-modal{
 }
 
 .selected-head-title {
-  font-size: 28px;
+  font-size: 25px;
   font-weight: 600;
   color: #111;
 }
@@ -4397,7 +4419,7 @@ modal-overlay.schedule-modal{
   height: 40px;
   border-radius: 8px;
   border: 1px solid #cfcfcf;
-  background: #f4f4f4;
+  background: #F9FAFB;
   cursor: pointer;
   font-size: 16px;
 }
@@ -4406,7 +4428,7 @@ modal-overlay.schedule-modal{
 .selected-head-tabs {
   display: flex;
   align-items: center;
-  background: #e5e5e5;
+  background: #F8F8FA;
   padding: 4px;
   border-radius: 12px;
   gap: 4px;
@@ -4487,12 +4509,29 @@ modal-overlay.schedule-modal{
 }
 
 /* ===== GRID CONTAINER ===== */
+/* #selectedCandidatePoolContainer { */
+  /* display: grid; */
+  /* grid-template-columns: repeat(4, 320px); 4 cards per row */
+  /* gap: 15px; */
+  /* justify-content: start; */
+  /* padding: 10px 0; */
+/* } */
+
 #selectedCandidatePoolContainer {
   display: grid;
-  grid-template-columns: repeat(4, 332px); /* 4 cards per row */
-  gap: 24px;
-  justify-content: start;
-  padding: 10px 0;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 17px;
+
+  padding: 20px;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  max-height: calc(100vh - 230px);
+  min-height: calc(100vh - 230px);
+
+  background-color: #fff;
+  border-radius: 20px;
+  margin-top: 8px;
 }
 
 /* ===== CARD WRAPPER ===== */
@@ -4501,9 +4540,8 @@ modal-overlay.schedule-modal{
   border: 1px solid #000;
   border-radius: 18px;
   padding: 16px;
-  margin-bottom: 16px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-  max-width: 360px;
+  max-width: 322px;
 }
 
 /* ===== HEADER ===== */
@@ -4555,7 +4593,7 @@ modal-overlay.schedule-modal{
 
 .selected-candidate-card:hover {
   box-shadow: 0 8px 20px rgba(255, 152, 0, 0.35);
-  transform: translateY(-2px);
+ 
 }
 
 
@@ -4783,17 +4821,18 @@ modal-overlay.schedule-modal{
 
 .retention-grid {
   display: grid;
-  gap: 24px;
-
-  /* 4 cards on desktop */
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 26px;
+  align-items: start;
 }
 
-
 /* ================= Retention Card ================= */
+
 .retention-card {
+  max-width: 360px;       /* prevents full-width stretching */
   width: 100%;
   justify-self: start;
+
   border: 2px solid #d1d5db;
   border-radius: 18px;
   padding: 20px;
@@ -4801,10 +4840,9 @@ modal-overlay.schedule-modal{
 
   display: flex;
   flex-direction: column;
-  height: 100%;
+  gap: 18px;
 
   transition: all 0.2s ease;
-  position: relative;
 }
 
 .retention-card:hover {
@@ -4836,13 +4874,6 @@ modal-overlay.schedule-modal{
   margin-top: 4px;
 }
 
-.retention-progress {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-   min-height: 54px;      /* 🔥 ensures consistent spacing */
-}
-
 /* ================= Package Button ================= */
 
 .package-btn {
@@ -4862,6 +4893,11 @@ modal-overlay.schedule-modal{
 
 /* ================= Progress Section ================= */
 
+.retention-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
 .progress-label {
   display: flex;
@@ -4951,178 +4987,182 @@ modal-overlay.schedule-modal{
   cursor: pointer;
 }
 
-
-/* ===== Exit Modal ===== */
-
-/* ===== FORCE Exit Modal to top ===== */
-
-
-.exit-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: none;            /* ALWAYS hidden by default */
-  align-items: center;
-  justify-content: center;
-  z-index: 999999;
-}
-
-.exit-modal-backdrop.active {
-  display: flex;            /* ONLY when active */
-}
-
-.exit-modal-box {
-  background: #f2f2f2;
-  border-radius: 18px;
-  padding: 28px;
-  width: 360px;
-  text-align: center;
-}
-
-.exit-modal-box.wide {
-  width: 420px;
-}
-
-/*popover styling*/
-.package-popover {
-  position: absolute;
-  top: 48px;           /* below Package button */
-  right: 20px;         /* aligned to right edge */
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 12px 14px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-  z-index: 10;
-  min-width: 180px;
-}
-
-.package-popover.hidden {
-  display: none;
-}
-
-.package-popover-content {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;                        /* ⬇ tighter spacing */
-}
-
-.pkg-label {
-  font-size: 11px;                 /* ⬇ smaller label */
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.pkg-value {
-  font-size: 18px;                 /* ⬇ smaller value */
-  font-weight: 700;
-  color: #111827;
-}
-
-
-.package-popover::before {
-  content: "";
-  position: absolute;
-  top: -6px;
-  right: 16px;
-  width: 12px;
-  height: 12px;
-  background: white;
-  transform: rotate(45deg);
-  box-shadow: -3px -3px 6px rgba(0,0,0,0.05);
-}
-
-.exit-form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 16px;
-}
-
-.exit-form-field label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #111827;
-}
-
-.exit-form-field select,
-.exit-form-field input {
-  height: 42px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  font-size: 14px;
-  background: #ffffff;
-}
-
-/* space  betweennb utton and date*/
-.conf-modal-buttons {
-  margin-top: 32px;
-}
-
-/* ================= FIXED CARD ALIGNMENT ================= */
-
-/* Ensure grid stretches cards equally */
-.retention-grid {
-  align-items: stretch;
-}
-
-/* Card must fill grid cell */
-.retention-card {
-  height: 100%;
-}
-
-/* Lock header height so all cards align */
-.retention-card-header {
-  min-height: 64px;
-}
-
-/* Prevent name & company from changing layout */
-.retention-name,
-.retention-company {
-  line-height: 1.2;
-  max-height: 2.4em;      /* max 2 lines */
-  overflow: hidden;
-}
-
-/* Normalize progress section height */
-.retention-progress {
-  min-height: 54px;
-}
-
-/* Keep progress label aligned */
-.progress-label {
-  display: flex;
+/* ------------------------------skelton loading schedule-------------------------------- */
+/* Container layout */
+/* Grid Container */
+.scheduled-card-container {
+  display: grid;
+  grid-template-columns: repeat(4, 320px); /* 4 cards per row */
+  gap: 10px 20px;
   justify-content: space-between;
+  /* margin:0px 8px; */
+}
+
+/* Skeleton Card */
+.scheduled-card-skeleton {
+  border: 3px solid #e5e7eb;
+  background: #ffffff;
+  pointer-events: none;
+  margin-right:10px;
+}
+
+/* Skeleton Base */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #eeeeee 25%,
+    #e0e0e0 37%,
+    #eeeeee 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 6px;
+}
+
+/* Shimmer animation */
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+/* Header Skeleton */
+.skeleton-title {
+  width: 60%;
+  height: 18px;
+  margin-bottom: 2px;
+}
+
+.skeleton-subinfo {
+  width: 40%;
+  height: 14px;
+  margin-bottom: 2px;
+}
+
+/* Interview Info Box */
+.skeleton-info-box {
+  background: #f3f4f6;
+  padding: 12px;
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
   align-items: center;
-}
-
-/* Push actions to bottom consistently */
-.retention-actions {
-  margin-top: auto;
-}
-
-/* Controlled vertical spacing */
-.retention-card-header {
-  margin-bottom: 14px;
-}
-
-.retention-progress {
   margin-bottom: 12px;
 }
 
-/*top bar*/
-.section-body.hidden {
-  display: none;
+.skeleton-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  margin-top:8px;
 }
 
-.section-header i {
-  transition: transform 0.25s ease;
+.skeleton-line {
+  height: 12px;
+  width: 100%;
 }
 
-.section-header i.rotated {
-  transform: rotate(180deg);
+.skeleton-line.short {
+  width: 60%;
 }
 
+.skeleton-line.small {
+  width: 40%;
+}
+
+.skeleton-badge {
+  width: 70px;
+  height: 20px;
+  border-radius: 6px;
+}
+
+/* Footer */
+.skeleton-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+.skeleton-btn-small {
+  width: 60px;
+  height: 39px;
+  border-radius: 8px;
+  margin-right:5px;
+}
+
+.skeleton-btn-large {
+  width: 210px;
+  height: 39px;
+  border-radius: 8px;
+}
+
+/* ----------------------------------skeleton loading selecetd--------------- */
+/* ===== SKELETON BASE ===== */
+.selected-skeleton-card {
+  width: 332px;
+  height: 200px;   /* reduced height */
+  padding: 16px;
+  pointer-events: none;
+  border:1px solid #e5e7eb;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #eeeeee 25%,
+    #e0e0e0 37%,
+    #eeeeee 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 6px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* ===== HEADER SKELETON ===== */
+.skeleton-name {
+  width: 160px;
+  height: 18px;
+  margin-bottom: 8px;
+}
+
+.skeleton-phone {
+  width: 120px;
+  height: 14px;
+}
+
+.skeleton-menu {
+  width: 10px;
+  height: 20px;
+  border-radius: 5px;
+}
+
+/* ===== DATE BOX ===== */
+.skeleton-date-box {
+  width: 100%;
+  height: 50px;
+  margin: 16px 0;
+  border-radius: 12px;
+}
+
+/* ===== BUTTON ===== */
+.skeleton-footer {
+  display: flex;
+  justify-content: center;
+}
+
+.skeleton-button {
+  width: 160px;
+  height: 45px;
+  border-radius: 25px;
+}
 
 </style>
-
