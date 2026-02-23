@@ -67,7 +67,6 @@ body {
   font-family: 'Inter', sans-serif;
   background-color: #f6c453; //yellow
   min-height: 100vh;
-  padding: 10px 20px;
 }
 
 .hidden {
@@ -75,25 +74,42 @@ body {
 }
 
 /* ===== DASHBOARD LAYOUT ===== */
-.dashboard-wrapper {
-  height: 100%;
-  background: var(--bg-lighter);
-  border-radius: 20px;
-  overflow: hidden;
+
+html, body {
+  background-color: #FFF6BF;
 }
+
+.dashboard-wrapper {
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
+}
+
+/*
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: #FFF6BF; 
+}
+.dashboard-wrapper {
+  min-height: 100vh;
+}*/
+
+
 
 .dashboard-card {
   background: #fffceb;
-  border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  min-height: calc(100vh - 20px);
+  border-radius: 0;        /* 🔥 remove rounding */
+  box-shadow: none;        /* 🔥 optional: remove floating look */
+  min-height: 98vh;
   display: flex;
 }
+
 
 /* ===== SIDEBAR ===== */
 .sidebar {
   width: 70px;
-  background-color: #FFF6BF; //background: linear-gradient(180deg, #e5ad34 0%, #FFD700 100%);
+  background-color: #FFF6BF; /*background: linear-gradient(180deg, #e5ad34 0%, #FFD700 100%);*/
   padding: 20px 12px;
   display: flex;
   flex-direction: column;
@@ -3082,12 +3098,12 @@ modal-overlay.schedule-modal{
 .stats-row {
   display: flex;
   gap: 28px;
-  margin-bottom: 20px;
+  margin-bottom:8px;
 }
 
 /* card */
 .stat-box {
-  background: #f7f7f7;
+  background: #ffffff;
   border-radius: 14px;
   padding: 15px;
   display: flex;
@@ -3095,7 +3111,6 @@ modal-overlay.schedule-modal{
   gap: 16px;
   min-width: 260px;
 
-  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
 }
 
 /* icon container (square bg) */
@@ -3140,12 +3155,19 @@ modal-overlay.schedule-modal{
 /* ===== HEADER ===== */
 .header-bar {
   padding:20px;
-  background-color:#fff;
+  background-color:#ffffff;
   border-radius:20px;
 
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+
+.header-bar h2{
+  font-size: 25px;
+  font-weight: 600;
+  color: #111;
 }
 
 .header-actions {
@@ -3326,8 +3348,18 @@ modal-overlay.schedule-modal{
 #ScheduledCandidatePoolContainer {
   display: grid;
   grid-template-columns: repeat(4, 1fr); /* ✅ 4 cards per row */
-  gap: 18px;
-  padding: 10px;
+  gap: 10px;
+  padding: 20px;
+   overflow-y: auto;
+  max-height: calc(100vh - 230px);
+  
+  min-height: calc(100vh - 230px);
+  background-color: #fff;
+
+  border-radius:20px;
+
+  margin-top:8px;
+ 
 }
 
 .scheduled-card {
@@ -3512,6 +3544,8 @@ modal-overlay.schedule-modal{
   background: #fff;
   border-radius: 10px;     /* rounded corners */
   border: 1px solid #e5e5e5; /* optional border */
+
+  margin-top:8px;
 
 }
 
@@ -3763,6 +3797,12 @@ modal-overlay.schedule-modal{
 .scheduled-more-btn:hover {
   color: #000;
 }
+
+.scheduled-card:nth-child(4n) .scheduled-more-dropdown,.selected-candidate-card:nth-child(4n) .scheduled-more-dropdown {
+  left: auto;
+  right: 20px;
+}
+
 
 .scheduled-more-dropdown {
   position: absolute;
@@ -4135,7 +4175,7 @@ modal-overlay.schedule-modal{
 .scheduled-confirmation {
   position: fixed;
   inset: 0;
-  z-index: 20000; /* higher than all other modals */
+  z-index: 99999999; /* higher than all other modals */
   display: none;
 }
 
@@ -4297,11 +4337,13 @@ modal-overlay.schedule-modal{
 
 
 /* =========================================SELECTED POOL=========================================== */
+
+
 .selected-stats-wrapper {
   display: flex;
   gap: 28px;
   background: #fffceb;
-  margin-bottom:15px;
+  margin-bottom:10px;
 }
 
 .selected-stat-box {
@@ -4311,7 +4353,9 @@ modal-overlay.schedule-modal{
   display: flex;
   align-items: center;
   gap: 16px;
-  min-width: 220px;
+  min-width: 210px;
+  min-height: 76px;
+  
   box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 }
 
@@ -4347,7 +4391,7 @@ modal-overlay.schedule-modal{
 }
 
 .selected-head-title {
-  font-size: 28px;
+  font-size: 25px;
   font-weight: 600;
   color: #111;
 }
@@ -4375,7 +4419,7 @@ modal-overlay.schedule-modal{
   height: 40px;
   border-radius: 8px;
   border: 1px solid #cfcfcf;
-  background: #f4f4f4;
+  background: #F9FAFB;
   cursor: pointer;
   font-size: 16px;
 }
@@ -4384,7 +4428,7 @@ modal-overlay.schedule-modal{
 .selected-head-tabs {
   display: flex;
   align-items: center;
-  background: #e5e5e5;
+  background: #F8F8FA;
   padding: 4px;
   border-radius: 12px;
   gap: 4px;
@@ -4465,12 +4509,29 @@ modal-overlay.schedule-modal{
 }
 
 /* ===== GRID CONTAINER ===== */
+/* #selectedCandidatePoolContainer { */
+  /* display: grid; */
+  /* grid-template-columns: repeat(4, 320px); 4 cards per row */
+  /* gap: 15px; */
+  /* justify-content: start; */
+  /* padding: 10px 0; */
+/* } */
+
 #selectedCandidatePoolContainer {
   display: grid;
-  grid-template-columns: repeat(4, 332px); /* 4 cards per row */
-  gap: 24px;
-  justify-content: start;
-  padding: 10px 0;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 17px;
+
+  padding: 20px;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  max-height: calc(100vh - 230px);
+  min-height: calc(100vh - 230px);
+
+  background-color: #fff;
+  border-radius: 20px;
+  margin-top: 8px;
 }
 
 /* ===== CARD WRAPPER ===== */
@@ -4479,9 +4540,8 @@ modal-overlay.schedule-modal{
   border: 1px solid #000;
   border-radius: 18px;
   padding: 16px;
-  margin-bottom: 16px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-  max-width: 360px;
+  max-width: 322px;
 }
 
 /* ===== HEADER ===== */
@@ -4533,7 +4593,7 @@ modal-overlay.schedule-modal{
 
 .selected-candidate-card:hover {
   box-shadow: 0 8px 20px rgba(255, 152, 0, 0.35);
-  transform: translateY(-2px);
+ 
 }
 
 
@@ -4711,5 +4771,398 @@ modal-overlay.schedule-modal{
   border-color: transparent transparent #222 transparent;
 }
 
+
+
+/* ================= Retention Pool Page ================= */
+
+.retention-page {
+  padding: 20px 24px;
+  min-height: calc(100vh - 40px);
+  background: #fffdf2;
+  box-sizing: border-box;
+}
+
+.retention-page .stats-section {
+  margin-bottom: 20px;
+}
+
+.retention-page .top-bar {
+  margin-bottom: 20px;
+}
+
+.retention-content-wrapper {
+  margin-top: 30px;
+}
+
+/* ================= Retention Sections ================= */
+
+.retention-section {
+  background: #ffffff;
+  border-radius: 14px;
+  margin-bottom: 22px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.section-header {
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.section-body {
+  padding: 16px 18px 22px;
+  overflow: hidden;
+}
+
+/* ================= Grid ================= */
+
+.retention-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 26px;
+  align-items: start;
+}
+
+/* ================= Retention Card ================= */
+
+.retention-card {
+  max-width: 360px;       /* prevents full-width stretching */
+  width: 100%;
+  justify-self: start;
+
+  border: 2px solid #d1d5db;
+  border-radius: 18px;
+  padding: 20px;
+  background: #ffffff;
+
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  transition: all 0.2s ease;
+}
+
+.retention-card:hover {
+  box-shadow: 0 12px 26px rgba(0,0,0,0.08);
+  transform: translateY(-3px);
+}
+
+/* ================= Card Header ================= */
+
+.retention-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.retention-name {
+  font-weight: 700;
+  font-size: 16px;
+  color: #111827;
+}
+
+.retention-company {
+  font-size: 13px;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+/* ================= Package Button ================= */
+
+.package-btn {
+  border: 1.5px solid #e5e7eb;
+  background: #ffffff;
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.package-btn:hover {
+  background: #f9fafb;
+}
+
+/* ================= Progress Section ================= */
+
+.retention-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #374151;
+}
+
+.retention-days {
+  font-size: 12px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.progress-bar {
+  height: 7px;
+  background: #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* TEMP STATIC — LOGIC LATER */
+.progress-fill {
+  height: 100%;
+  width: 45%;
+  background: linear-gradient(90deg, #2563eb, #22c55e);
+  border-radius: 10px;
+}
+
+.progress-fill.completed {
+  width: 100%;
+  background: #22c55e;
+}
+/* ================= Actions ================= */
+
+.retention-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;              /* space between icon & button */
+  margin-top: 8px;
+}
+
+/* Leave / Resign icon button (LEFT) */
+.danger-btn {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;        /* prevents shrinking */
+  border-radius: 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1.5px solid #fecaca;
+  background: #fff;
+  color: #dc2626;
+  cursor: pointer;
+}
+
+.danger-btn:hover {
+  background: #fee2e2;
+}
+
+/* Completed button (RIGHT – takes remaining space) */
+.complete-btn {
+  flex: 1;                /* 👈 THIS is the key */
+  height: 38px;
+
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13px;
+
+  border: none;
+  background: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.complete-btn.active {
+  background: #22c55e;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* ------------------------------skelton loading schedule-------------------------------- */
+/* Container layout */
+/* Grid Container */
+.scheduled-card-container {
+  display: grid;
+  grid-template-columns: repeat(4, 320px); /* 4 cards per row */
+  gap: 10px 20px;
+  justify-content: space-between;
+  /* margin:0px 8px; */
+}
+
+/* Skeleton Card */
+.scheduled-card-skeleton {
+  border: 3px solid #e5e7eb;
+  background: #ffffff;
+  pointer-events: none;
+  margin-right:10px;
+}
+
+/* Skeleton Base */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #eeeeee 25%,
+    #e0e0e0 37%,
+    #eeeeee 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 6px;
+}
+
+/* Shimmer animation */
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+/* Header Skeleton */
+.skeleton-title {
+  width: 60%;
+  height: 18px;
+  margin-bottom: 2px;
+}
+
+.skeleton-subinfo {
+  width: 40%;
+  height: 14px;
+  margin-bottom: 2px;
+}
+
+/* Interview Info Box */
+.skeleton-info-box {
+  background: #f3f4f6;
+  padding: 12px;
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.skeleton-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  margin-top:8px;
+}
+
+.skeleton-line {
+  height: 12px;
+  width: 100%;
+}
+
+.skeleton-line.short {
+  width: 60%;
+}
+
+.skeleton-line.small {
+  width: 40%;
+}
+
+.skeleton-badge {
+  width: 70px;
+  height: 20px;
+  border-radius: 6px;
+}
+
+/* Footer */
+.skeleton-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+.skeleton-btn-small {
+  width: 60px;
+  height: 39px;
+  border-radius: 8px;
+  margin-right:5px;
+}
+
+.skeleton-btn-large {
+  width: 210px;
+  height: 39px;
+  border-radius: 8px;
+}
+
+/* ----------------------------------skeleton loading selecetd--------------- */
+/* ===== SKELETON BASE ===== */
+.selected-skeleton-card {
+  width: 332px;
+  height: 200px;   /* reduced height */
+  padding: 16px;
+  pointer-events: none;
+  border:1px solid #e5e7eb;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #eeeeee 25%,
+    #e0e0e0 37%,
+    #eeeeee 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 6px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* ===== HEADER SKELETON ===== */
+.skeleton-name {
+  width: 160px;
+  height: 18px;
+  margin-bottom: 8px;
+}
+
+.skeleton-phone {
+  width: 120px;
+  height: 14px;
+}
+
+.skeleton-menu {
+  width: 10px;
+  height: 20px;
+  border-radius: 5px;
+}
+
+/* ===== DATE BOX ===== */
+.skeleton-date-box {
+  width: 100%;
+  height: 50px;
+  margin: 16px 0;
+  border-radius: 12px;
+}
+
+/* ===== BUTTON ===== */
+.skeleton-footer {
+  display: flex;
+  justify-content: center;
+}
+
+.skeleton-button {
+  width: 160px;
+  height: 45px;
+  border-radius: 25px;
+}
 
 </style>
