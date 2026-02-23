@@ -68,30 +68,32 @@ function getCandidatePool() {
           ? row[13].toString().split(", ").map(x => x.trim())
           : [],
 
-        rescheduledCompanies: row[14]
+        shortlistedWalkinCompanies: row[14]
+          ? row[19].toString().split(", ").map(x => x.trim())
+          : [],
+
+        rescheduledCompanies: row[15]
           ? row[14].toString().split(", ").map(x => x.trim())
           : [],
 
-        candidateRejected: row[15]
-          ? row[15].toString().split(", ").map(x => x.trim())
-          : [],
-        
         ghostedCompanies: row[16]
           ? row[16].toString().split(", ").map(x => x.trim())
           : [],
 
-        companyRejected: row[17]
+        candidateRejected: row[17]
+          ? row[15].toString().split(", ").map(x => x.trim())
+          : [],
+        
+
+        companyRejected: row[18]
           ? row[17].toString().split(", ").map(x => x.trim())
           : [],
 
-        selectedCompanies: row[18]
+        selectedCompanies: row[19]
           ? row[18].toString().split(", ").map(x => x.trim())
           : [],
 
-        shortlistedWalkinCompanies: row[19]
-          ? row[19].toString().split(", ").map(x => x.trim())
-          : []
-
+        
         // clientInterviewScheduledCount: parseInt(row[7], 10) || 0
       });
     }
@@ -169,8 +171,8 @@ function markNotInterestedBackend(profileId, employeeId, company, type, reason) 
 
     const colA = 0;   // Profile ID
     const colM = 12;  // Active companies
-    const colP = 15;  // Candidate rejected
-    const colR = 17;  // Company rejected
+    const colP = 17;  // Candidate rejected
+    const colR = 18;  // Company rejected
 
     let found = false;
 
@@ -396,7 +398,7 @@ function ghostedCompanyToReschedule(employeeId,profileId,company){
 
   const col_profile = 0; // A
   const col_ghosted = 16; // Q
-  const col_reschedule = 14; // O
+  const col_reschedule = 15; // P
 
 
 console.log(company,profileId)
@@ -503,7 +505,7 @@ if (normalizedType === 'reschedule' && normalizedStatus === 'reschedule') {
 // candidate rejected → reason
 if (
   normalizedType === 'candidate rejected' &&
-  normalizedStatus === 'candidate rejected'
+  (normalizedStatus === 'candidate rejected (p1)'|| normalizedStatus === 'candidate rejected (p2)')
 ) {
   candidateRejectedReason = colG || '';
 }
@@ -755,9 +757,9 @@ function updateInteviewResultsToSheet(decision, employeeId, profileId, interview
       // ---------- RESCHEDULE ----------
       if (decisionLower === "reschedule") {
 
-        let val = row[14] || "";
+        let val = row[15] || "";
         val = val ? `${val}, ${company}` : company;
-        sheet2.getRange(i + 1, 15).setValue(val);
+        sheet2.getRange(i + 1, 16).setValue(val);
 
         sheet2.getRange(i + 1, 14).setValue(updatedSchedule);
         
@@ -782,9 +784,9 @@ function updateInteviewResultsToSheet(decision, employeeId, profileId, interview
       // ---------- COMPANY REJECTED ----------
       if (decisionLower === "company rejected") {
 
-        let val = row[17] || "";
+        let val = row[18] || "";
         val = val ? `${val}, ${company}` : company;
-        sheet2.getRange(i + 1, 18).setValue(val);
+        sheet2.getRange(i + 1, 19).setValue(val);
 
         sheet2.getRange(i + 1, 14).setValue(updatedSchedule);
 
@@ -796,9 +798,9 @@ function updateInteviewResultsToSheet(decision, employeeId, profileId, interview
       // ---------- CANDIDATE REJECTED ----------
       if (decisionLower === "candidate rejected (p2)" || decisionLower === "candidate rejected (p3)") {
 
-        let val = row[15] || "";
+        let val = row[17] || "";
         val = val ? `${val}, ${company}` : company;
-        sheet2.getRange(i + 1, 16).setValue(val);
+        sheet2.getRange(i + 1, 18).setValue(val);
 
         sheet2.getRange(i + 1, 14).setValue(updatedSchedule);
         
@@ -810,9 +812,9 @@ function updateInteviewResultsToSheet(decision, employeeId, profileId, interview
       // ---------- SELECTED ----------
       if (decisionLower === "selected") {
 
-        let val = row[18] || "";
+        let val = row[19] || "";
         val = val ? `${val}, ${company}` : company;
-        sheet2.getRange(i + 1, 19).setValue(val);
+        sheet2.getRange(i + 1, 20).setValue(val);
 
         sheet2.getRange(i + 1, 14).setValue(updatedSchedule);
         
@@ -823,8 +825,79 @@ function updateInteviewResultsToSheet(decision, employeeId, profileId, interview
     }
   }
 }
+function addToShortlistedforWalkinCol(employeeId, profileId, interviewId, company) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const historicSheet = ss.getSheetByName("Historic Data");
+  const poolSheet = ss.getSheetByName("Candidate Pool");
 
+  const now = new Date();
 
+  Logger.log("Incoming:");
+  Logger.log(employeeId, profileId, interviewId, company);
+
+  const historicData = historicSheet.getDataRange().getValues();
+
+  let historicMatch = false;
+
+  for (let i = 1; i < historicData.length; i++) {
+    const row = historicData[i];
+
+  
+    const profId = String(row[1]).trim();
+    const intId = String(row[12]).trim();
+
+    if (
+      profId === String(profileId).trim() &&
+      intId === String(interviewId).trim()
+    ) {
+      historicSheet.getRange(i + 1, 4).setValue("Shortlisted For walk-in");
+      historicSheet.getRange(i + 1, 6).setValue(now);
+      historicMatch = true;
+      break;
+    }
+  }
+
+  if (!historicMatch) {
+    throw new Error("Historic Data row not found");
+  }
+
+  const poolData = poolSheet.getDataRange().getValues();
+
+  let poolMatch = false;
+
+  for (let i = 1; i < poolData.length; i++) {
+    const row = poolData[i];
+    const profId = String(row[0]).trim();
+
+    if (profId === String(profileId).trim()) {
+
+      let schedule = row[13] || "";
+
+      const updatedSchedule = schedule
+        .split(",")
+        .map(c => c.trim())
+        .filter(c => c && c !== company)
+        .join(", ");
+
+      poolSheet.getRange(i + 1, 14).setValue(updatedSchedule);
+
+      let val = row[14] || "";
+      val = val ? `${val}, ${company}` : company;
+
+      poolSheet.getRange(i + 1, 15).setValue(val);
+
+      poolMatch = true;
+      break;
+    }
+  }
+
+  if (!poolMatch) {
+    throw new Error("Candidate Pool row not found");
+  }
+
+  SpreadsheetApp.flush();
+  return true;
+}
 // ------------------------------------
 
 function getSelectedCandidates() {
@@ -1002,6 +1075,42 @@ function updateJoinedCandidates(
       historicSheet.getRange(rowIndex, 1).setValue(employeeId);
     }
 
+
+    // ======================================
+// 4️⃣ GET RETENTION TIME FRAME FROM Hiring Requirments
+// ======================================
+
+const hiringSheet = ss.getSheetByName("Hiring Requirments");
+if (!hiringSheet) throw new Error("Hiring Requirments sheet missing");
+
+// extract company & position
+// format expected: CompanyName(Position)
+const match = company.match(/^(.*?)\((.*?)\)$/);
+
+let retentionTimeFrame = "";
+
+if (match) {
+  const companyName = match[1].trim();
+  const positionName = match[2].trim();
+
+  const hiringData = hiringSheet.getDataRange().getValues();
+
+  for (let i = 1; i < hiringData.length; i++) {
+    const sheetCompany = hiringData[i][0]?.toString().trim(); // Col A
+    const sheetPosition = hiringData[i][1]?.toString().trim(); // Col B
+
+    if (
+      sheetCompany === companyName &&
+      sheetPosition === positionName
+    ) {
+      retentionTimeFrame = hiringData[i][16]; // Col Q
+      break;
+    }
+  }
+}
+
+
+
     // ======================================
     // 4️⃣ ADD TO RETENTION POOL
     // ======================================
@@ -1009,7 +1118,7 @@ function updateJoinedCandidates(
       employeeId,
       profileId,
       company,
-      "Joined","",
+      "Joined",retentionTimeFrame,
       joiningDate,
       salary
     ]);
@@ -1064,7 +1173,7 @@ function updateCompanyReschedule(employeeId, profileId, interviewId, company) {
   const COL_PROFILE_POOL = 0;      // A
   const COL_PENDING_POOL = 12;     // M
   const COL_SCHEDULED_POOL = 13;   // N
-  const COL_RESCHEDULED_POOL = 14; // O
+  const COL_RESCHEDULED_POOL = 15; // P
 
   let lastStatus = null;
 
@@ -1225,7 +1334,7 @@ function scheduleMassWalkin(employeeId,data) {
     const profileCol = 0;    // A
     const qualifiedCol = 12; // M
     const scheduledCol = 13; // N
-    const rescheduleCol = 14;// O
+    const rescheduleCol = 15;// O
 
     const splitCell = (val) =>
       val ? val.split(",").map(s => s.trim()).filter(Boolean) : [];
@@ -1333,12 +1442,8 @@ function getCandidateHighlight(profileId) {
   };
 }
 
-// -------====================================Retention Pool------------------------------------
-function normalizeDate(d) {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
-}
+// --------------------------------------Retention Pool------------------------------------
+
 function getRetentionPool() {
   try {
     console.log("=== SERVER: getRetentionPool started ===");
@@ -1449,6 +1554,12 @@ function getRetentionPool() {
         // retention details
         companyName,
         jobTitle,
+        status: row[3]?.toString().trim().toLowerCase() || "",
+        retentionTimeFrame: row[4]?.toString() || "",
+        joiningDate: row[5] instanceof Date
+          ? row[5].toISOString()
+          : row[5]?.toString() || "",
+        salary: row[6] || ""
         status: rawStatus,
         retentionTimeFrame: retentionDays,
         completedDays,

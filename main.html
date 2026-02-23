@@ -202,7 +202,7 @@
             
             <div class="modal-actions">
               <button class="modal-btn confirm" onclick="closeScheduleModal()">Close</button>
-  <button type="submit" form="walkinForm" class="modal-btn submit-btn">Submit</button>
+  <button type="submit" form="virtualForm" class="modal-btn submit-btn">Submit</button>
   
 </div>
 
@@ -650,7 +650,7 @@
       
 
       <button class="refresh-btn"
-  onclick="handleRefresh(this, loadCandidateData)">
+  onclick="handleRefresh(this, loadScheduledCandidateData)">
   <i class="fa-solid fa-rotate"></i>
 </button>
 
@@ -658,7 +658,7 @@
   </div>
         </div>
 
-        <div class="Schedule-content" >
+        <div class="schedule-content" >
             <div id="ScheduledCandidatePoolContainer"></div>
           </div>
         </div>
@@ -805,6 +805,7 @@
 
   </div>
 
+  </div>
 </div>
 
 
@@ -1475,8 +1476,8 @@ function createHighlightModal() {
           <div id="tagContainer" class="highlight-tag-container"></div>
 
           <div class="highlight-modal-actions">
-            <button class="highlight-submit" onclick="submitHighlight()">Submit</button>
             <button class="highlight-cancel" onclick="closeHighlightModal()">Cancel</button>
+            <button class="highlight-submit" onclick="submitHighlight()">Submit</button>
           </div>
         </div>
 
@@ -1563,23 +1564,51 @@ function renderTags() {
 
 function submitHighlight() {
   const reason = document.getElementById("highlightReason").value;
+  const submitBtn = document.querySelector(".highlight-submit");
+  const cancelBtn = document.querySelector(".highlight-cancel");
 
-  google.script.run
-    .withSuccessHandler(function (res) {
-      if (res.success) {
-        showSuccessNotification("Highlight saved successfully");
-        closeHighlightModal();
-      } else {
-        showErrorModal(res.message);
-      }
-    })
-    .updateCandidateHighlights(
-      selectedProfileId,
-      reason,
-      selectedTags
-    );
+  // Disable both buttons immediately
+  submitBtn.disabled = true;
+  cancelBtn.disabled = true;
+
+  openScheduledConfirmation(
+    "Are you sure you want to save this highlight?",
+    function () {
+
+      // Change button text to Saving...
+      submitBtn.innerText = "Saving...";
+
+      google.script.run
+        .withSuccessHandler(function (res) {
+
+          if (res.success) {
+            showSuccessNotification("Highlight saved successfully");
+            closeHighlightModal();
+          } else {
+            showErrorModal(res.message);
+
+            // Re-enable buttons if failed
+            submitBtn.disabled = false;
+            cancelBtn.disabled = false;
+            submitBtn.innerText = "Submit";
+          }
+        })
+        .withFailureHandler(function () {
+          showErrorModal("Something went wrong. Please try again.");
+
+          // Re-enable buttons if error
+          submitBtn.disabled = false;
+          cancelBtn.disabled = false;
+          submitBtn.innerText = "Submit";
+        })
+        .updateCandidateHighlights(
+          selectedProfileId,
+          reason,
+          selectedTags
+        );
+    }
+  );
 }
-
 
     // ===== SEARCH FUNCTIONALITY =====
     function initializeSearch() {
@@ -2154,11 +2183,15 @@ function generateGoogleMeetLink() {
   input.disabled = true;
 
   google.script.run
-    .withSuccessHandler(function(link) {
-      input.value = link;
-      input.disabled = false;
-      input.dataset.loading = "false";
-    })
+    .withSuccessHandler(function(response) {
+  console.log(response); // debug
+
+  // If backend returns { meetLink: "url" }
+  input.value = response.meetLink;
+
+  input.disabled = false;
+  input.dataset.loading = "false";
+})
     .withFailureHandler(function() {
       input.value = "";
       input.placeholder = "Failed to generate. Click again";
@@ -3091,10 +3124,12 @@ function filterInterviews(type, customDate = null) {
     if (!item.interviewScheduledTimestamp || isNaN(interviewDate)) return false;
 
     // Pending → already passed
-    if (type === "Pending") {
-      return interviewDate < now;
-    }
+if (type === "Pending") {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // reset to midnight
 
+  return interviewDate < today;
+}
     // Today
     if (type === "Today") {
       return interviewDate.toDateString() === now.toDateString();
@@ -3278,43 +3313,66 @@ function hiddenloadScheduledCandidateData() {
       }
     }
 
-
-
 function loadScheduledCandidateData() {
-  //   // 🔥 DEFAULT = ALL
-  // selectedFilter = "all";
 
-      console.log('Loading Schedudled candidate data...');
-      
-      const container = document.getElementById('ScheduledCandidatePoolContainer');
-      container.innerHTML = `
-        <div class="loading-state">
-          <div class="loading-spinner"></div>
-          <p>Loading Scheduled candidates...</p>
-        </div>
-      `;
-      
-      // Clear previous data
-      scheduledCandidatePoolData = [];
-      
-      // Check if google.script.run is available
-      if (typeof google === 'undefined' || !google.script || !google.script.run) {
-        console.error('Google Apps Script API not available');
-        showError('Cannot connect to server. Please refresh the page.');
-        return;
-      }
-      
-      try {
-        // Call server function
-        google.script.run
-          .withSuccessHandler(handleScheduledCandidateDataSuccess)
-          .withFailureHandler(handleScheduledCandidateDataError)
-          .getScheduledCandidates();
-      } catch (error) {
-        console.error('Error calling server:', error);
-        showError('Error connecting to server: ' + error.message);
-      }
-    }
+  console.log('Loading Scheduled candidate data...');
+  
+  const container = document.getElementById('ScheduledCandidatePoolContainer');
+  container.innerHTML = ""; // clear existing content
+
+  // 🔥 Create skeleton container
+  const skeletonWrapper = document.createElement("div");
+  skeletonWrapper.className = "scheduled-card-container";
+
+  // 🔥 Generate 8 skeleton cards
+  for (let i = 0; i < 8; i++) {
+    const skeletonCard = document.createElement("div");
+    skeletonCard.className = "scheduled-card scheduled-card-skeleton";
+
+    skeletonCard.innerHTML = `
+      <div class="skeleton skeleton-title"></div>
+      <div class="skeleton skeleton-subinfo"></div>
+
+      <div class="skeleton-info-box">
+        <div class="skeleton skeleton-icon"></div>
+        <div class="skeleton skeleton-line short"></div>
+        <div class="skeleton skeleton-badge"></div>
+        <div class="skeleton skeleton-line"></div>
+        <div class="skeleton skeleton-line small"></div>
+      </div>
+
+      <div class="skeleton-footer">
+        <div class="skeleton skeleton-btn-small"></div>
+        <div class="skeleton skeleton-btn-large"></div>
+      </div>
+    `;
+
+    skeletonWrapper.appendChild(skeletonCard);
+  }
+
+  container.appendChild(skeletonWrapper);
+
+  // Clear previous data
+  scheduledCandidatePoolData = [];
+
+  // Check if google.script.run is available
+  if (typeof google === 'undefined' || !google.script || !google.script.run) {
+    console.error('Google Apps Script API not available');
+    showError('Cannot connect to server. Please refresh the page.');
+    return;
+  }
+
+  try {
+    google.script.run
+      .withSuccessHandler(handleScheduledCandidateDataSuccess)
+      .withFailureHandler(handleScheduledCandidateDataError)
+      .getScheduledCandidates();
+  } catch (error) {
+    console.error('Error calling server:', error);
+    showError('Error connecting to server: ' + error.message);
+  }
+}
+
 
     function handleScheduledCandidateDataSuccess(data) {
       console.log('scheduled Candidate data received:', data);
@@ -3340,7 +3398,25 @@ function loadScheduledCandidateData() {
       scheduledCandidatePoolData = data;
       
       // Render cards
-      renderScheduledCandidateCards(data,candidatePoolData);
+      // renderScheduledCandidateCards(data,candidatePoolData);
+      
+  const pendingData = filterInterviews("Pending");
+  renderScheduledCandidateCards(pendingData, candidatePoolData);
+
+const activeBtn = document.querySelector(".date-btn.active");
+
+  if (activeBtn) {
+    const type = activeBtn.textContent.trim();
+    const result = filterInterviews(type);
+    renderScheduledCandidateCards(result, candidatePoolData);
+
+    const btnRect = activeBtn.getBoundingClientRect();
+    const parentRect = activeBtn.parentElement.getBoundingClientRect();
+
+    slider.style.width = `${btnRect.width}px`;
+    slider.style.left = `${btnRect.left - parentRect.left}px`;
+  }
+
       
       // Update stats
       // updatescheduledStats(data);
@@ -3663,6 +3739,7 @@ function openScheduledMoreDropdown(event, btn, employeeId, profileId, interviewI
   dropdown.className = "scheduled-more-dropdown";
   dropdown.innerHTML = `
     <div class="scheduled-more-item" onclick="markCompanyReschedule('${employeeId}','${profileId}','${interviewId}','${company}')">Company Reschedule</div>
+    <div class="scheduled-more-item" onclick="openHighlightModal('${profileId}','${employeeId}')">Highlight</div>
     <div class="scheduled-more-item disable">Request Follow-up</div>
   `;
 
@@ -3693,6 +3770,7 @@ function markCompanyReschedule(employeeId, profileId, interviewId,company) {
 
       closeScheduledConfirmation();
       closeUpdatePopup(); // if any modal is open
+      hiddenloadScheduledCandidateData();
 
       console.log("COMPANY RESCHEDULE CONFIRMED:", {
         employeeId,
@@ -3887,6 +3965,39 @@ function closeUpdatePopup() {
 }
 
 // ================================step 3 NOt attendded=================================================
+//ghosted 
+function markCandidateGhosted(employeeId, profileId, interviewId, company) {
+
+  openScheduledConfirmation(
+    `
+      Are you sure to update<br>
+      interview status as<br>
+      <strong>Ghosted</strong>
+    `,
+    () => {
+      // ✅ CONFIRMED ACTION
+      console.log("GHOSTED CONFIRMED:", {
+        employeeId,
+        profileId,
+        interviewId
+      });
+
+      // Close any open update popups
+      // closeUpdatePopup();
+
+      // 🔹 Call GAS / backend here
+      google.script.run
+        .withSuccessHandler(() => {
+          showSuccessNotification("Candidate marked as Ghosted")
+          closeUpdatePopup();
+          hiddenloadScheduledCandidateData();
+        })
+        .updateInteviewResultsToSheet("Ghosted",employeeId, profileId, interviewId,company);
+    }
+  );
+}
+
+
 
 //rescheudled-Not Attended
 function markCandidateReschedule(employeeId, profileId, interviewId, company) {
@@ -3947,8 +4058,7 @@ function backToNotAttendedOptions() {
   }
 }
 
-
-function submitRescheduleReason(employeeId, profileId, interviewId,company, btn) {
+function submitRescheduleReason(employeeId, profileId, interviewId, company, btn) {
 
   const popup = btn.closest(".scheduled-reschedule-popup");
   const reason = popup.querySelector(".scheduled-reschedule-textarea").value.trim();
@@ -3958,20 +4068,36 @@ function submitRescheduleReason(employeeId, profileId, interviewId,company, btn)
     return;
   }
 
-  // 🔹 Open confirmation modal
   openScheduledConfirmation(
-  `
-    Are you sure to update<br>
-    interview status as<br>
-    <strong>Reschedule</strong>
-  `,
-  () => submitRescheduleReasonFinal(employeeId, profileId, interviewId, company, reason)
-);
-
+    `
+      Are you sure to update<br>
+      interview status as<br>
+      <strong>Reschedule</strong>
+    `,
+    () => submitRescheduleReasonFinal(
+      employeeId,
+      profileId,
+      interviewId,
+      company,
+      reason,
+      popup
+    )
+  );
 }
 
+function submitRescheduleReasonFinal(employeeId, profileId, interviewId, company, reason, popup) {
 
-function submitRescheduleReasonFinal(employeeId, profileId, interviewId, company, reason) {
+  const submitBtn = popup.querySelector(".scheduled-submit-btn");
+  const cancelBtn = popup.querySelector(".scheduled-cancel-btn");
+
+  // 🔹 Disable buttons
+  submitBtn.disabled = true;
+  cancelBtn.disabled = true;
+
+  // 🔹 Change button to Saving...
+  submitBtn.innerText = "Saving...";
+  submitBtn.style.color = "#28a745";
+  submitBtn.style.cursor = "not-allowed";
 
   console.log("CONFIRMED RESCHEDULE:", {
     employeeId,
@@ -3981,10 +4107,32 @@ function submitRescheduleReasonFinal(employeeId, profileId, interviewId, company
     reason
   });
 
+  closeScheduledConfirmation();
+
   google.script.run
     .withSuccessHandler(() => {
-      showSuccessNotification("Reschedule submitted successfully"); // 👈 add here
-      closeUpdatePopup(); // optional: keep after notification
+      showSuccessNotification("Reschedule submitted successfully");
+      hiddenloadScheduledCandidateData();
+
+      // Reset (not strictly required since popup closes, but safe)
+      submitBtn.disabled = false;
+      cancelBtn.disabled = false;
+      submitBtn.innerText = "Submit";
+      submitBtn.style.color = "";
+      submitBtn.style.cursor = "";
+
+      closeUpdatePopup();
+    })
+    .withFailureHandler(() => {
+
+      // 🔹 Re-enable if backend fails
+      submitBtn.disabled = false;
+      cancelBtn.disabled = false;
+      submitBtn.innerText = "Submit";
+      submitBtn.style.color = "";
+      submitBtn.style.cursor = "";
+
+      alert("Something went wrong. Please try again.");
     })
     .updateInteviewResultsToSheet(
       "Reschedule",
@@ -3996,38 +4144,6 @@ function submitRescheduleReasonFinal(employeeId, profileId, interviewId, company
     );
 }
 
-
-
-//ghosted
-function markCandidateGhosted(employeeId, profileId, interviewId, company) {
-
-  openScheduledConfirmation(
-    `
-      Are you sure to update<br>
-      interview status as<br>
-      <strong>Ghosted</strong>
-    `,
-    () => {
-      // ✅ CONFIRMED ACTION
-      console.log("GHOSTED CONFIRMED:", {
-        employeeId,
-        profileId,
-        interviewId
-      });
-
-      // Close any open update popups
-      // closeUpdatePopup();
-
-      // 🔹 Call GAS / backend here
-      google.script.run
-        .withSuccessHandler(() => {
-          showSuccessNotification("Candidate marked as Ghostes")
-          closeUpdatePopup();
-        })
-        .updateInteviewResultsToSheet("Ghosted (P2)",employeeId, profileId, interviewId,company);
-    }
-  );
-}
 
 //candidate rejected P2
 function markCandidateRejectedP2(employeeId, profileId, interviewId, company) {
@@ -4082,11 +4198,31 @@ function submitRejectedP2Reason(employeeId, profileId, interviewId, company, btn
       interview status as<br>
       <strong>Candidate Rejected (P2)</strong>
     `,
-    () => submitRejectedP2Final(employeeId, profileId, interviewId, company, reason)
+    () => submitRejectedP2Final(
+      employeeId,
+      profileId,
+      interviewId,
+      company,
+      reason,
+      popup
+    )
   );
 }
 
-function submitRejectedP2Final(employeeId, profileId, interviewId, company, reason) {
+
+function submitRejectedP2Final(employeeId, profileId, interviewId, company, reason, popup) {
+
+  const submitBtn = popup.querySelector(".scheduled-submit-btn");
+  const cancelBtn = popup.querySelector(".scheduled-cancel-btn");
+
+  // 🔹 Disable buttons
+  submitBtn.disabled = true;
+  cancelBtn.disabled = true;
+
+  // 🔹 Change button state
+  submitBtn.innerText = "Saving...";
+  submitBtn.style.color = "#28a745";
+  submitBtn.style.cursor = "not-allowed";
 
   console.log("REJECTED P2 CONFIRMED:", {
     employeeId,
@@ -4095,21 +4231,43 @@ function submitRejectedP2Final(employeeId, profileId, interviewId, company, reas
     reason
   });
 
-  // close confirmation
   closeScheduledConfirmation();
 
-  // close textarea modal
-  closeUpdatePopup();
-
-  // 🔹 Call backend here
   google.script.run
     .withSuccessHandler(() => {
-          showSuccessNotification("Marked Candidate Rejected ")
-          closeUpdatePopup()
-          })
-    .updateInteviewResultsToSheet("Candidate Rejected (P2)",employeeId, profileId, interviewId,company, reason);
-}
 
+      showSuccessNotification("Marked Candidate Rejected");
+      hiddenloadScheduledCandidateData();
+
+      // Reset (safe but optional since popup closes)
+      submitBtn.disabled = false;
+      cancelBtn.disabled = false;
+      submitBtn.innerText = "Submit";
+      submitBtn.style.color = "";
+      submitBtn.style.cursor = "";
+
+      closeUpdatePopup();
+    })
+    .withFailureHandler(() => {
+
+      // 🔹 Re-enable if backend fails
+      submitBtn.disabled = false;
+      cancelBtn.disabled = false;
+      submitBtn.innerText = "Submit";
+      submitBtn.style.color = "";
+      submitBtn.style.cursor = "";
+
+      alert("Something went wrong. Please try again.");
+    })
+    .updateInteviewResultsToSheet(
+      "Candidate Rejected (P2)",
+      employeeId,
+      profileId,
+      interviewId,
+      company,
+      reason
+    );
+}
 // ==================================3 attended=======================================================
 //  selected
 function markCandidateSelected(employeeId, profileId, interviewId, company) {
@@ -4165,15 +4323,39 @@ function openWalkinQuestionPopup(employeeId, profileId, interviewId, company) {
 }
 
 function handleWalkinYes(employeeId, profileId, interviewId, company) {
-  closeUpdatePopup();
 
-  console.log("Virtual interview has a follow-up Walk-in:", {
-    employeeId,
-    profileId,
-    interviewId
-  });
+ const confirmationContent = `
+    This candidate has cleared the Virtual round.<br>
+    Do you want to move them to Shortlisted Walk-in </b>?
+  `;
 
-  // ❌ Do NOT open Final Details
+  openScheduledConfirmation(
+    confirmationContent,
+    () => {
+
+      google.script.run
+        .withSuccessHandler(() => {
+
+          showSuccessNotification("Candidate moved to Shortlisted Walk-in");
+           closeUpdatePopup();
+          hiddenloadScheduledCandidateData();
+
+        })
+        .withFailureHandler((err) => {
+
+          console.error(err);
+          showErrorModal("Failed to update.");
+
+
+        })
+        .addToShortlistedforWalkinCol(
+          employeeId,
+          profileId,
+          interviewId,
+          company
+        );
+    }
+  );
 }
 
 
@@ -4203,39 +4385,71 @@ function submitFinalDetails() {
 
   const salary = document.getElementById("finalSalary").value;
   const joiningDate = document.getElementById("finalJoiningDate").value;
+  const button = document.querySelector(".final-confirm-btn");
 
   if (!salary || !joiningDate) {
     showErrorModal("Please fill all details");
     return;
   }
 
-  console.log("FINAL DETAILS SUBMITTED:", {
-    ...finalDetailsContext,
-    salary,
-    joiningDate
-  });
+  const reason = `${salary} monthly (${joiningDate})`;
 
-  // closeFinalDetailsModal();
+  const confirmationContent = `
+    Are you sure you want to mark this candidate as <b>Selected</b>?<br><br>
+    <b>Salary:</b> ₹${salary}<br>
+    <b>Joining Date:</b> ${joiningDate}
+  `;
 
-  const reason=`${salary} monthly (${joiningDate})`
+  openScheduledConfirmation(
 
-  // 🔹 Call backend here
-  google.script.run
-    .withSuccessHandler(() => {
-      showSuccessNotification("Marked Candidate selected")
-      closeFinalDetailsModal()})
-    .updateInteviewResultsToSheet("Selected",finalDetailsContext.employeeId, finalDetailsContext.profileId, finalDetailsContext.interviewId,finalDetailsContext.company, reason);
+    confirmationContent,
+    () => {
 
-  // Backend call later
-  // google.script.run.saveFinalDetails(
-  //   finalDetailsContext.employeeId,
-  //   finalDetailsContext.profileId,
-  //   finalDetailsContext.interviewId,
-  //   salary,
-  //   joiningDate
-  // );
+      // 🔹 Change button to Saving
+      const originalText = button.innerText;
+      button.innerText = "Saving...";
+      button.style.backgroundColor = "#28a745";
+      button.disabled = true;
+
+      google.script.run
+        .withSuccessHandler(() => {
+
+          showSuccessNotification("Marked Candidate selected");
+          hiddenloadScheduledCandidateData();
+
+          // ✅ Change to Saved
+          button.innerText = "Saved";
+
+          setTimeout(() => {
+            button.innerText = originalText;
+            button.style.backgroundColor = "";
+            button.disabled = false;
+          }, 1200);
+
+          closeFinalDetailsModal();
+          closeUpdatePopup();
+
+        })
+        .withFailureHandler((err) => {
+          console.error(err);
+          showErrorModal("Failed to update.");
+
+          // Reset button on error
+          button.innerText = originalText;
+          button.style.backgroundColor = "";
+          button.disabled = false;
+        })
+        .updateInteviewResultsToSheet(
+          "Selected",
+          finalDetailsContext.employeeId,
+          finalDetailsContext.profileId,
+          finalDetailsContext.interviewId,
+          finalDetailsContext.company,
+          reason
+        );
+    }
+  );
 }
-
 //company jected
 function markCandidateCompanyRejected(employeeId, profileId, interviewId, company) {
 
@@ -4278,7 +4492,7 @@ function backToCandidateStatus(employeeId, profileId, interviewId, company) {
   markCandidateAttended(employeeId, profileId, interviewId, company);
 }
 
-function confirmCompanyRejected(employeeId, profileId, interviewId,company, btn) {
+function confirmCompanyRejected(employeeId, profileId, interviewId, company, btn) {
 
   const popup = btn.closest(".scheduled-reschedule-popup");
   const reason = popup.querySelector(".scheduled-reschedule-textarea").value.trim();
@@ -4294,11 +4508,31 @@ function confirmCompanyRejected(employeeId, profileId, interviewId,company, btn)
       interview status as<br>
       <strong>Company Rejected</strong>
     `,
-    () => submitCompanyRejectedFinal(employeeId, profileId, interviewId, company,reason)
+    () => submitCompanyRejectedFinal(
+      employeeId, 
+      profileId, 
+      interviewId, 
+      company, 
+      reason,
+      popup
+    )
   );
 }
 
-function submitCompanyRejectedFinal(employeeId, profileId, interviewId, company, reason) {
+
+function submitCompanyRejectedFinal(employeeId, profileId, interviewId, company, reason, popup) {
+
+  const saveBtn = popup.querySelector(".scheduled-submit-btn");
+  const cancelBtn = popup.querySelector(".scheduled-cancel-btn");
+
+  // 🔹 Disable buttons
+  saveBtn.disabled = true;
+  cancelBtn.disabled = true;
+
+  // 🔹 Change save button to Saving...
+  saveBtn.innerText = "Saving...";
+  saveBtn.style.color = "#28a745"; // green
+  saveBtn.style.cursor = "not-allowed";
 
   console.log("COMPANY REJECTED CONFIRMED:", {
     employeeId,
@@ -4308,20 +4542,43 @@ function submitCompanyRejectedFinal(employeeId, profileId, interviewId, company,
     reason
   });
 
-  // close confirmation modal
   closeScheduledConfirmation();
 
-  // close reason modal
-  // closeUpdatePopup();
-
-  // 🔹 Backend call here
   google.script.run
-    .withSuccessHandler(() =>{ 
-      showSuccessNotification("Marked as Company Rejected")
-      closeUpdatePopup()})
-    .updateInteviewResultsToSheet("Company Rejected",employeeId, profileId, interviewId,company, reason);
-}
+    .withSuccessHandler(() => { 
+      showSuccessNotification("Marked as Company Rejected");
+      hiddenloadScheduledCandidateData();
 
+
+      // 🔹 Reset button state before closing
+      saveBtn.disabled = false;
+      cancelBtn.disabled = false;
+      saveBtn.innerText = "Save";
+      saveBtn.style.color = "";
+      saveBtn.style.cursor = "";
+
+      closeUpdatePopup();
+    })
+    .withFailureHandler(() => {
+
+      // 🔹 If error, re-enable buttons
+      saveBtn.disabled = false;
+      cancelBtn.disabled = false;
+      saveBtn.innerText = "Save";
+      saveBtn.style.color = "";
+      saveBtn.style.cursor = "";
+
+      alert("Something went wrong. Please try again.");
+    })
+    .updateInteviewResultsToSheet(
+      "Company Rejected",
+      employeeId,
+      profileId,
+      interviewId,
+      company,
+      reason
+    );
+}
 
 
 
@@ -4617,13 +4874,31 @@ function loadSelectedCandidateData() {
   console.log("Loading Selected candidate data...");
 
   const container = document.getElementById("selectedCandidatePoolContainer");
+  container.innerHTML = ""; // clear first
 
-  container.innerHTML = `
-    <div class="loading-state">
-      <div class="loading-spinner"></div>
-      <p>Loading Selected candidates...</p>
-    </div>
-  `;
+  // 🔥 Create 8 skeleton cards
+  for (let i = 0; i < 8; i++) {
+    const skeletonCard = document.createElement("div");
+    skeletonCard.className = "selected-candidate-card selected-skeleton-card";
+
+    skeletonCard.innerHTML = `
+      <div class="selected-card-header">
+        <div>
+          <div class="skeleton skeleton-name"></div>
+          <div class="skeleton skeleton-phone"></div>
+        </div>
+        <div class="skeleton skeleton-menu"></div>
+      </div>
+
+      <div class="skeleton skeleton-date-box"></div>
+
+      <div class="skeleton-footer">
+        <div class="skeleton skeleton-button"></div>
+      </div>
+    `;
+
+    container.appendChild(skeletonCard);
+  }
 
   // reset global
   selectedCandidatePoolData = [];
@@ -4644,7 +4919,6 @@ function loadSelectedCandidateData() {
     container.innerHTML = `<p style="color:red">${error.message}</p>`;
   }
 }
-
 // ===========stats===========================
 function renderJoiningStats(data) {
   const now = new Date();
@@ -4793,7 +5067,7 @@ function renderSelectedCandidateCards(candidates) {
       </div>
     </div>
 
-    <div class="selected-card-menu">
+    <div class="selected-card-menu" onclick="openSelectedMoreDropdown(event, this, '${employeeId}', '${candidate.profileId}', '${candidate.interviewId}', '${candidate.selectedCompanyName}')">
       <i class="fa-solid fa-ellipsis-vertical"></i>
     </div>
   </div>
@@ -4864,6 +5138,37 @@ function confirmRescheduleJoiningDate(interviewId) {
   );
 }
 
+function openSelectedMoreDropdown(event, btn, employeeId, profileId, interviewId, company) {
+  event.stopPropagation();
+
+  // Remove existing dropdown
+  document.querySelectorAll(".scheduled-more-dropdown").forEach(d => d.remove());
+
+  const dropdown = document.createElement("div");
+  dropdown.className = "scheduled-more-dropdown";
+  dropdown.innerHTML = `
+    <div class="scheduled-more-item" onclick="openHighlightModal('${profileId}','${employeeId}')">
+      Highlight
+    </div>
+    
+  `;
+
+  // Make parent relative if not already
+  btn.parentElement.style.position = "relative";
+
+  btn.parentElement.appendChild(dropdown);
+
+  // Close on outside click
+  setTimeout(() => {
+    document.addEventListener("click", closeSelectedMoreDropdown, { once: true });
+  }, 0);
+}
+
+function closeSelectedMoreDropdown() {
+  document.querySelectorAll(".scheduled-more-dropdown").forEach(d => d.remove());
+}
+
+
 
 function openRescheduleJoiningDateModal(interviewId) {
 
@@ -4917,6 +5222,8 @@ function submitRescheduleJoiningDate(interviewId) {
   console.log("Joining Date Rescheduled To:", newDate);
 
   closeUpdatePopup();
+
+  showSuccessNotification("Joining Date rescheduled")
 
   // 🔹 Backend hook (later)
   google.script.run.joiningdateReschedule(
@@ -5152,7 +5459,9 @@ function submitCompanyRejectionFromSelected(employeeId, profileId, interviewId, 
 
     // 🔹 Call GAS here
   google.script.run
-    .withSuccessHandler(() => closeUpdatePopup())
+    .withSuccessHandler(() => {
+      showSuccessNotification("Marked as Company Rejected")
+      closeUpdatePopup()})
     .updateInteviewResultsToSheet("Company Rejection",employeeId, profileId, interviewId,company, reason);
 }
 
@@ -5170,7 +5479,9 @@ function submitCandidateRejectionP3(employeeId, profileId, interviewId, company,
 
     // 🔹 Call GAS here
   google.script.run
-    .withSuccessHandler(() => closeUpdatePopup())
+    .withSuccessHandler(() =>{ 
+      showSuccessNotification("Marked as Candidate Rejected (P3)")
+      closeUpdatePopup()})
     .updateInteviewResultsToSheet("Candidate Rejection (P3)",employeeId, profileId, interviewId,company, reason);
 
 }
@@ -5198,7 +5509,7 @@ function markCandidateGhostedP2(employeeId, profileId, interviewId, company) {
       // 🔹 Call GAS / backend here
       google.script.run
         .withSuccessHandler(() => {
-          showSuccessNotification("Candidate marked as Ghosted")
+          showSuccessNotification("Candidate marked as Ghosted (P2)")
           closeUpdatePopup();
         })
         .updateInteviewResultsToSheet("Ghosted (P2)",employeeId, profileId, interviewId,company);
@@ -5285,7 +5596,6 @@ function handleJoinYes(
       Salary: <strong>₹ ${expectedSalary}</strong>
     `,
     () => {
-      closeScheduledConfirmation();
 
       console.log("JOINED ON-TIME", {
         employeeId,
@@ -5297,7 +5607,11 @@ function handleJoinYes(
 
          // 🔹 Call GAS here
   google.script.run
-    .withSuccessHandler(() => closeUpdatePopup())
+    .withSuccessHandler(() =>{
+      
+      closeScheduledConfirmation();
+      showSuccessNotification("Candidate Joined")
+    closeUpdatePopup()})
     .updateJoinedCandidates(employeeId, profileId, interviewId,company, expectedDate,expectedSalary);
 
     }
@@ -5425,7 +5739,6 @@ function submitJoinWithChanges(
   joiningDate,
   salary
 ) {
-  closeScheduledConfirmation();
   // closeUpdatePopup();
 
   console.log("JOINED WITH CHANGES", {
@@ -5438,7 +5751,11 @@ function submitJoinWithChanges(
 
    // 🔹 Call GAS hereinnerHTML
   google.script.run
-    .withSuccessHandler(() => closeUpdatePopup())
+    .withSuccessHandler(() => {
+        closeScheduledConfirmation();
+
+      showSuccessNotification("Candidate Joined")
+      closeUpdatePopup()})
     .updateJoinedCandidates(employeeId, profileId, interviewId,company, joiningDate,salary);
 
 }
@@ -5569,6 +5886,10 @@ function buildRetentionSection(title, list) {
   // optional collapse behavior (can keep for later)
   const header = section.querySelector(".section-header");
   const body = section.querySelector(".section-body");
+
+  // header.addEventListener("click", () => {
+  //   body.classList.toggle("hidden");
+  // });
   const icon = header.querySelector("i");
 
   header.addEventListener("click", () => {
@@ -5582,6 +5903,9 @@ function buildRetentionSection(title, list) {
 //Retention card generator
 
 function createRetentionCard(item) {
+  const status = (item.status || "").toLowerCase();
+  const isCompleted = status === "completed";
+  const isExited = status === "resignation" || status === "termination";
    // ===== STEP 2: Progress calculation =====
   const totalDays = Number(item.retentionTimeFrame) || 0;
   const doneDays = Math.min(item.completedDays || 0, totalDays);
@@ -5636,6 +5960,18 @@ function createRetentionCard(item) {
       <!-- PROGRESS -->
       <div class="retention-progress">
         <div class="progress-label">
+          Retention Period
+          ${
+            isCompleted
+              ? `<span class="status-text completed">Completed</span>`
+              : isExited
+                ? `<span class="status-text exited">${item.status}</span>`
+                : ""
+          }
+        </div>
+
+        <div class="progress-bar">
+          <div class="progress-fill ${isCompleted ? "completed" : ""}"></div>
           <span>Retention Period</span>
 
           <span class="status-text ${
@@ -5661,6 +5997,11 @@ function createRetentionCard(item) {
 
       <!-- ACTIONS -->
       <div class="retention-actions">
+        <button class="danger-btn" title="Resign / Terminate">
+          <i class="fa-solid fa-user-slash"></i>
+        </button>
+
+        <button class="complete-btn ${isCompleted ? "active" : "disabled"}">
         <button 
           class="danger-btn retention-exit-btn"
           data-employee-id="${item.employeeId}"
@@ -5709,6 +6050,8 @@ document.addEventListener("click", function (e) {
   }, 0);
 });
 
+
+//==========================================================
 
 // ================= Retention Complete Handler =================
 document.addEventListener("click", function (e) {
