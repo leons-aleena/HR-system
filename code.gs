@@ -1506,6 +1506,43 @@ function getRetentionPool() {
 
       const candidateInfo = candidateMap[profileId] || {};
 
+      // ---------- Retention completion logic ----------
+      const rawStatus = row[3]?.toString().trim().toLowerCase() || "";
+      const retentionDays = Number(row[4]); // Column E
+      const rawJoiningDate = row[5];        // Column F
+
+      let canComplete = false;
+
+      //--status bar--
+      let completedDays = 0;
+
+      if (rawJoiningDate instanceof Date) {
+        const start = normalizeDate(rawJoiningDate);
+        const today = normalizeDate(new Date());
+
+        completedDays = Math.max(
+          0,
+          Math.floor((today - start) / (1000 * 60 * 60 * 24))
+        );
+      }
+
+      if (
+        rawJoiningDate instanceof Date &&
+        retentionDays &&
+        rawStatus !== "completed"
+      ) {
+        const start = normalizeDate(rawJoiningDate);
+        const today = normalizeDate(new Date());
+
+        const diffDays = Math.floor(
+          (today - start) / (1000 * 60 * 60 * 24)
+        );
+
+        if (diffDays >= retentionDays) {
+          canComplete = true;
+        }
+      }
+
       retentionPool.push({
         employeeId,
         profileId,
@@ -1523,6 +1560,16 @@ function getRetentionPool() {
           ? row[5].toISOString()
           : row[5]?.toString() || "",
         salary: row[6] || ""
+        status: rawStatus,
+        retentionTimeFrame: retentionDays,
+        completedDays,
+        joiningDate: rawJoiningDate instanceof Date
+          ? rawJoiningDate.toISOString()
+          : "",
+        salary: row[6] || "",
+
+        // ⭐ THIS IS THE KEY
+        canComplete,
       });
     }
 
@@ -1534,6 +1581,136 @@ function getRetentionPool() {
     return { error: error.toString() };
   }
 }
+
+function markRetentionCompleted(employeeId, profileId) {
+  const sheet = SpreadsheetApp
+    .getActive()
+    .getSheetByName("Retention Pool");
+
+  if (!sheet) {
+    throw new Error("Retention Pool sheet not found");
+  }
+
+  const data = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    const rowEmployeeId = String(data[i][0]).trim(); // Column A
+    const rowProfileId  = String(data[i][1]).trim(); // Column B
+
+    if (
+      rowEmployeeId === String(employeeId).trim() &&
+      rowProfileId === String(profileId).trim()
+    ) {
+      // Column D = Status
+      sheet.getRange(i + 1, 4).setValue("Completed");
+      return true;
+    }
+  }
+
+  throw new Error("Retention record not found");
+}
+
+
+function removeCompanyFromList(cellValue, company) {
+  if (!cellValue || !company) return cellValue || "";
+
+  const companyNorm = company.toLowerCase().trim();
+
+  const list = cellValue
+    .split(",")
+    .map(v => v.trim())
+    .filter(v => {
+      const vNorm = v.toLowerCase();
+      return !vNorm.includes(companyNorm);
+    });
+
+  return list.join(", ");
+}
+
+function addCompanyToList(cellValue, company) {
+  if (!cellValue) return company;
+  const list = cellValue
+    .split(",")
+    .map(v => v.trim());
+  if (!list.includes(company)) list.push(company);
+  return list.join(", ");
+}
+
+function markRetentionExit(
+  employeeId,
+  profileId,
+  company,
+  type,
+  reason,
+  lastWorkingDate
+) {
+  const ss = SpreadsheetApp.getActive();
+  const retentionSheet = ss.getSheetByName("Retention Pool");
+  const candidateSheet = ss.getSheetByName("Candidate Pool");
+
+  let companyWithJob = ""; // ✅ DECLARED ONCE
+
+  /* ================= Retention Pool ================= */
+  const retentionData = retentionSheet.getDataRange().getValues();
+
+  for (let i = 1; i < retentionData.length; i++) {
+    const row = retentionData[i];
+
+    if (row[0] == employeeId && row[1] == profileId) {
+
+      companyWithJob = row[2]; // Column C
+
+      const joiningDate = new Date(row[5]);
+      const lastDate = new Date(lastWorkingDate);
+
+      const completedDays = Math.max(
+        0,
+        Math.floor((lastDate - joiningDate) / (1000 * 60 * 60 * 24))
+      );
+
+      retentionSheet.getRange(i + 1, 4).setValue(type);
+      retentionSheet.getRange(i + 1, 8).setValue(reason);
+      retentionSheet.getRange(i + 1, 9).setValue(lastDate);
+      retentionSheet.getRange(i + 1, 10).setValue(completedDays);
+
+      break;
+    }
+  }
+
+  /* ================= Candidate Pool ================= */
+  const candData = candidateSheet.getDataRange().getValues();
+
+  for (let i = 1; i < candData.length; i++) {
+    if (candData[i][0] == profileId) {
+
+      // U = Joined
+      const joined = candData[i][20];
+      const updatedJoined = removeCompanyFromList(joined, companyWithJob);
+      candidateSheet.getRange(i + 1, 21).setValue(updatedJoined);
+
+      if (type === "resignation") {
+        // R = Candidate Rejected
+        const rejected = candData[i][17];
+        candidateSheet
+          .getRange(i + 1, 18)
+          .setValue(addCompanyToList(rejected, companyWithJob));
+      } else {
+        // S = Company Rejected
+        const rejected = candData[i][18];
+        candidateSheet
+          .getRange(i + 1, 19)
+          .setValue(addCompanyToList(rejected, companyWithJob));
+      }
+
+      break;
+    }
+  }
+}
+
+
+
+
+
 
 
 

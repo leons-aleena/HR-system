@@ -75,6 +75,7 @@ body {
 
 /* ===== DASHBOARD LAYOUT ===== */
 
+/*
 html, body {
   background-color: #FFF6BF;
 }
@@ -84,16 +85,30 @@ html, body {
 }
 
 /*
+}*/
+
+/* ===== Global page ===== */
 html, body {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
   background: #FFF6BF; 
+  min-height: 100%;        /* ✅ allow growth */
+  background: #FFF6BF;
+  overflow-y: auto;       /* ✅ enable scrolling */
+}
+
+/* ===== App wrapper ===== */
+.dashboard-wrapper {
+  min-height: 100vh;      /* ✅ at least viewport height */
+  background: var(--bg-lighter);
+  border-radius: 0;
 }
 .dashboard-wrapper {
   min-height: 100vh;
 }*/
+
 
 
 
@@ -102,6 +117,7 @@ html, body {
   border-radius: 0;        /* 🔥 remove rounding */
   box-shadow: none;        /* 🔥 optional: remove floating look */
   min-height: 98vh;
+  min-height: 100vh;
   display: flex;
 }
 
@@ -4833,6 +4849,17 @@ modal-overlay.schedule-modal{
   width: 100%;
   justify-self: start;
 
+  gap: 24px;
+
+  /* 4 cards on desktop */
+  grid-template-columns: repeat(4, 1fr);
+}
+
+
+/* ================= Retention Card ================= */
+.retention-card {
+  width: 100%;
+  justify-self: start;
   border: 2px solid #d1d5db;
   border-radius: 18px;
   padding: 20px;
@@ -4843,6 +4870,10 @@ modal-overlay.schedule-modal{
   gap: 18px;
 
   transition: all 0.2s ease;
+  height: 100%;
+
+  transition: all 0.2s ease;
+  position: relative;
 }
 
 .retention-card:hover {
@@ -4872,6 +4903,13 @@ modal-overlay.schedule-modal{
   align-items: center;
   gap: 6px;
   margin-top: 4px;
+}
+
+.retention-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+   min-height: 54px;      /* 🔥 ensures consistent spacing */
 }
 
 /* ================= Package Button ================= */
@@ -5166,3 +5204,178 @@ modal-overlay.schedule-modal{
 }
 
 </style>
+
+/* ===== Exit Modal ===== */
+
+/* ===== FORCE Exit Modal to top ===== */
+
+
+.exit-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: none;            /* ALWAYS hidden by default */
+  align-items: center;
+  justify-content: center;
+  z-index: 999999;
+}
+
+.exit-modal-backdrop.active {
+  display: flex;            /* ONLY when active */
+}
+
+.exit-modal-box {
+  background: #f2f2f2;
+  border-radius: 18px;
+  padding: 28px;
+  width: 360px;
+  text-align: center;
+}
+
+.exit-modal-box.wide {
+  width: 420px;
+}
+
+/*popover styling*/
+.package-popover {
+  position: absolute;
+  top: 48px;           /* below Package button */
+  right: 20px;         /* aligned to right edge */
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  z-index: 10;
+  min-width: 180px;
+}
+
+.package-popover.hidden {
+  display: none;
+}
+
+.package-popover-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;                        /* ⬇ tighter spacing */
+}
+
+.pkg-label {
+  font-size: 11px;                 /* ⬇ smaller label */
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.pkg-value {
+  font-size: 18px;                 /* ⬇ smaller value */
+  font-weight: 700;
+  color: #111827;
+}
+
+
+.package-popover::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  right: 16px;
+  width: 12px;
+  height: 12px;
+  background: white;
+  transform: rotate(45deg);
+  box-shadow: -3px -3px 6px rgba(0,0,0,0.05);
+}
+
+.exit-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.exit-form-field label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.exit-form-field select,
+.exit-form-field input {
+  height: 42px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  background: #ffffff;
+}
+
+/* space  betweennb utton and date*/
+.conf-modal-buttons {
+  margin-top: 32px;
+}
+
+/* ================= FIXED CARD ALIGNMENT ================= */
+
+/* Ensure grid stretches cards equally */
+.retention-grid {
+  align-items: stretch;
+}
+
+/* Card must fill grid cell */
+.retention-card {
+  height: 100%;
+}
+
+/* Lock header height so all cards align */
+.retention-card-header {
+  min-height: 64px;
+}
+
+/* Prevent name & company from changing layout */
+.retention-name,
+.retention-company {
+  line-height: 1.2;
+  max-height: 2.4em;      /* max 2 lines */
+  overflow: hidden;
+}
+
+/* Normalize progress section height */
+.retention-progress {
+  min-height: 54px;
+}
+
+/* Keep progress label aligned */
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Push actions to bottom consistently */
+.retention-actions {
+  margin-top: auto;
+}
+
+/* Controlled vertical spacing */
+.retention-card-header {
+  margin-bottom: 14px;
+}
+
+.retention-progress {
+  margin-bottom: 12px;
+}
+
+/*top bar*/
+.section-body.hidden {
+  display: none;
+}
+
+.section-header i {
+  transition: transform 0.25s ease;
+}
+
+.section-header i.rotated {
+  transform: rotate(180deg);
+}
+
+
+</style>
+

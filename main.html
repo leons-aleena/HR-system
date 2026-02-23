@@ -10,6 +10,7 @@
 
 <body>
 
+ 
   <!-- Success Modal -->
   <div class="success-toast-backdrop" id="successToastBackdrop">
     <div class="success-toast">
@@ -803,12 +804,107 @@
     </div>
 
   </div>
+
+  </div>
 </div>
 
 
 
+
+</div>
+<!-- Exit Cause Modal -->
+<div id="exitCauseModal" class="exit-modal-backdrop">
+  <div class="exit-modal-box">
+    <h2 class="conf-modal-title">What was Cause of Exit</h2>
+
+    <button
+      class="conf-modal-btn"
+      style="color:#2563eb"
+      onclick="selectExitCause('resignation')">
+      Candidate Resignation
+    </button>
+
+    <button
+      class="conf-modal-btn"
+      style="color:#dc2626"
+      onclick="selectExitCause('termination')">
+      Company Termination
+    </button>
+  </div>
 </div>
 
+<!-- Exit Reason + Date Modal -->
+<!-- Exit Reason + Date Modal -->
+<div id="exitDetailsModal" class="exit-modal-backdrop">
+  <div class="exit-modal-box wide">
+
+    <h2 class="conf-modal-title" id="exitDetailsTitle"></h2>
+
+    <!-- Reason -->
+    <div class="exit-form-field">
+      <label for="exitReasonSelect">
+        Please Specify the Reason for Candidate Resignation
+      </label>
+      <select id="exitReasonSelect">
+        <option value="">Select reason</option>
+      </select>
+    </div>
+
+    <!-- Last working day -->
+    <div class="exit-form-field">
+      <label for="exitLastWorkingDate">
+        Specify the Last working day of candidate
+      </label>
+      <input type="date" id="exitLastWorkingDate" />
+    </div>
+
+    <!-- Buttons -->
+    <div class="conf-modal-buttons">
+      <button
+        class="conf-modal-btn conf-modal-btn-cancel"
+        onclick="closeExitDetails()">
+        Cancel
+      </button>
+
+      <button
+        class="conf-modal-btn conf-modal-btn-confirm"
+        onclick="openFinalExitConfirm()">
+        Confirm & Save
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Final Exit Confirmation Modal -->
+<div id="exitFinalConfirmModal" class="exit-modal-backdrop">
+  <div class="exit-modal-box">
+    <div class="conf-modal-icon">?</div>
+    <h2 class="conf-modal-title">Confirmation Required</h2>
+
+    <p class="conf-modal-content" id="exitFinalText"></p>
+
+    <div class="conf-modal-buttons">
+      <button class="conf-modal-btn conf-modal-btn-confirm"
+        onclick="confirmExit()">Confirm</button>
+
+      <button class="conf-modal-btn conf-modal-btn-cancel"
+        onclick="closeFinalExit()">Go Back</button>
+    </div>
+  </div>
+</div>
+
+
+<!--popover elemen  -->
+<div id="packagePopover" class="package-popover hidden">
+  <div class="package-popover-content">
+    <div class="pkg-label">Job Salary</div>
+    <div class="pkg-value" id="pkgSalary">—</div>
+
+    <div class="pkg-label">Joining Date</div>
+    <div class="pkg-value" id="pkgJoining">—</div>
+  </div>
+</div>
 
 <!-- ------------------------------------------------------------------------------ -->
 
@@ -828,6 +924,9 @@
     let currentEmployeeId = "TPEID457776" ;
     let currentProfileId = null;
     let interviewScheduleCount = 0;
+
+    
+  
 
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', function() {
@@ -2585,6 +2684,7 @@ function closeConfirmationModal() {
 }
 
 function confirmAction() {
+  console.log("CONFIRM CLICKED", confirmationCallback);
   if (confirmationCallback) confirmationCallback();
   closeConfirmationModal();
 }
@@ -5662,6 +5762,18 @@ function submitJoinWithChanges(
 
 //=================Retention Pool===========================
 
+// ===== Exit Flow State =====
+let exitContext = {
+  employeeId: null,
+  profileId: null,
+  company: null,
+  type: null,
+  reason: null,
+  lastDate: null
+};
+
+
+
 //: Loader function (entry point)
 
 function loadRetentionPool() {
@@ -5778,6 +5890,12 @@ function buildRetentionSection(title, list) {
   // header.addEventListener("click", () => {
   //   body.classList.toggle("hidden");
   // });
+  const icon = header.querySelector("i");
+
+  header.addEventListener("click", () => {
+    body.classList.toggle("hidden");
+    icon.classList.toggle("rotated");
+  });
 
   return section;
 }
@@ -5788,6 +5906,21 @@ function createRetentionCard(item) {
   const status = (item.status || "").toLowerCase();
   const isCompleted = status === "completed";
   const isExited = status === "resignation" || status === "termination";
+   // ===== STEP 2: Progress calculation =====
+  const totalDays = Number(item.retentionTimeFrame) || 0;
+  const doneDays = Math.min(item.completedDays || 0, totalDays);
+
+  const progressPercent = totalDays
+    ? Math.round((doneDays / totalDays) * 100)
+    : 0;
+
+  const status = (item.status || "").toLowerCase();
+  const isCompleted =
+    status === "completed" ||
+    (doneDays >= totalDays && totalDays > 0);
+
+  const isExited =
+    status === "resignation" || status === "termination";
 
   return `
     <div class="retention-card">
@@ -5809,6 +5942,19 @@ function createRetentionCard(item) {
           data-joining="${item.joiningDate || ""}">
           Package Details
         </button>
+          <div class="package-popover hidden">
+            <div class="package-popover-content">
+              <div class="pkg-label">Job Salary</div>
+              <div class="pkg-value">${item.salary || "—"}</div>
+
+              <div class="pkg-label">Joining Date</div>
+              <div class="pkg-value">
+                ${item.joiningDate
+                  ? new Date(item.joiningDate).toLocaleDateString("en-GB")
+                  : "—"}
+              </div>
+            </div>
+          </div>
       </div>
 
       <!-- PROGRESS -->
@@ -5826,6 +5972,26 @@ function createRetentionCard(item) {
 
         <div class="progress-bar">
           <div class="progress-fill ${isCompleted ? "completed" : ""}"></div>
+          <span>Retention Period</span>
+
+          <span class="status-text ${
+            isCompleted ? "completed" : isExited ? "exited" : ""
+          }">
+            ${
+              isCompleted
+                ? "Completed"
+                : isExited
+                  ? item.status
+                  : `${doneDays}/${totalDays}`
+            }
+          </span>
+        </div>
+
+        <div class="progress-bar">
+          <div
+            class="progress-fill ${isCompleted ? "completed" : ""}"
+            style="width: ${isCompleted ? 100 : progressPercent}%">
+          </div>
         </div>
       </div>
 
@@ -5836,6 +6002,20 @@ function createRetentionCard(item) {
         </button>
 
         <button class="complete-btn ${isCompleted ? "active" : "disabled"}">
+        <button 
+          class="danger-btn retention-exit-btn"
+          data-employee-id="${item.employeeId}"
+          data-profile-id="${item.profileId}"
+          data-company="${item.companyName}">
+          <i class="fa-solid fa-user-slash"></i>
+        </button>
+
+        <button
+          class="complete-btn ${item.canComplete ? 'active' : 'disabled'}"
+          data-employee-id="${item.employeeId}"
+          data-profile-id="${item.profileId}"
+          ${item.canComplete ? "" : "disabled"}
+        >
           Completed
         </button>
       </div>
@@ -5873,6 +6053,181 @@ document.addEventListener("click", function (e) {
 
 //==========================================================
 
+// ================= Retention Complete Handler =================
+document.addEventListener("click", function (e) {
+  const btn = e.target.closest(".complete-btn");
+  if (!btn) return;
+
+  // Block disabled buttons
+  if (btn.hasAttribute("disabled")) return;
+
+  const employeeId = btn.dataset.employeeId;
+  const profileId  = btn.dataset.profileId;
+
+  if (!employeeId || !profileId) {
+    console.error("Missing identifiers for retention completion");
+    return;
+  }
+
+  //  Reuse your existing confirmation modal
+  openConfirmationModal(
+    "Mark Retention as Completed",
+  `
+    Are you sure you want to mark this retention as
+    <br><strong>Completed</strong>?
+  `,
+    () => {
+      btn.textContent = "Updating...";
+      btn.setAttribute("disabled", true);
+
+      google.script.run
+        .withSuccessHandler(() => {
+          showSuccessNotification("Retention marked as Completed");
+          loadRetentionPool(); // refresh UI
+        })
+        .withFailureHandler(err => {
+          console.error(err);
+          showErrorNotification("Failed to update retention");
+          btn.textContent = "Completed";
+          btn.removeAttribute("disabled");
+        })
+        .markRetentionCompleted(employeeId, profileId);
+    }
+  );
+});
+
+//Click handler for Leave button
+document.addEventListener("click", function (e) {
+  const btn = e.target.closest(".retention-exit-btn");
+  if (!btn) return;
+
+  closeAllExitModals(); // 🔥 important
+
+  exitContext.employeeId = btn.dataset.employeeId;
+  exitContext.profileId  = btn.dataset.profileId;
+  exitContext.company    = btn.dataset.company;
+
+  document.getElementById("exitCauseModal").classList.add("active");
+});
+
+
+// <!-- Handle Exit Cause selection -->
+function selectExitCause(type) {
+  closeAllExitModals(); // 🔥 hide previous
+
+  exitContext.type = type;
+
+  const title =
+    type === "resignation"
+      ? "Please Specify the Reason for Candidate Resignation"
+      : "Please Specify the Reason for Company Termination";
+
+  document.getElementById("exitDetailsTitle").innerText = title;
+
+  const select = document.getElementById("exitReasonSelect");
+  select.innerHTML = `<option value="">Select reason</option>`;
+
+  const reasons =
+    type === "resignation"
+      ? ["Personal", "Better Opportunity", "Relocation", "Health"]
+      : ["Performance", "Policy Violation", "Budget Constraints"];
+
+  reasons.forEach(r => {
+    const opt = document.createElement("option");
+    opt.value = r;
+    opt.textContent = r;
+    select.appendChild(opt);
+  });
+
+  document.getElementById("exitDetailsModal").classList.add("active");
+}
+
+
+//Open Final Confirmation
+function openFinalExitConfirm() {
+  const reason = document.getElementById("exitReasonSelect").value;
+  const date   = document.getElementById("exitLastWorkingDate").value;
+
+  if (!reason || !date) {
+    alert("Please fill all details");
+    return;
+  }
+
+  exitContext.reason = reason;
+  exitContext.lastDate = date;
+
+  closeAllExitModals(); // 🔥 hide reason modal
+
+  document.getElementById("exitFinalText").innerHTML = `
+    Are you sure to update retention status as
+    <br><strong>${
+      exitContext.type === "resignation"
+        ? "Candidate Resignation"
+        : "Company Termination"
+    }</strong>
+  `;
+
+  document.getElementById("exitFinalConfirmModal").classList.add("active");
+}
+
+
+//Final Confirm
+function confirmExit() {
+  google.script.run
+    .withSuccessHandler(() => {
+      showSuccessNotification("Retention updated successfully");
+      closeAllExitModals();
+      loadRetentionPool();
+    })
+    .withFailureHandler(err => {
+      console.error(err);
+      showErrorModal("Failed to update retention");
+    })
+    .markRetentionExit(
+      exitContext.employeeId,
+      exitContext.profileId,
+      exitContext.company,
+      exitContext.type,
+      exitContext.reason,
+      exitContext.lastDate
+    );
+}
+
+//Close helpers
+function closeExitDetails() {
+  closeAllExitModals();
+}
+
+function closeFinalExit() {
+  closeAllExitModals();
+}
+
+function closeAllExitModals() {
+  document.getElementById("exitCauseModal")?.classList.remove("active");
+  document.getElementById("exitDetailsModal")?.classList.remove("active");
+  document.getElementById("exitFinalConfirmModal")?.classList.remove("active");
+}
+
+let activePackageButton = null;
+document.addEventListener("click", function (e) {
+  const btn = e.target.closest(".package-btn");
+  if (!btn) return;
+
+  const card = btn.closest(".retention-card");
+  const popover = card.querySelector(".package-popover");
+
+  // Close all other popovers
+  document
+    .querySelectorAll(".package-popover")
+    .forEach(p => {
+      if (p !== popover) p.classList.add("hidden");
+    });
+
+  popover.classList.toggle("hidden");
+});
+
+
+//==========================================================
 
 
 </script>
